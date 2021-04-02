@@ -7,18 +7,15 @@ from ctypes import wintypes, windll, create_unicode_buffer, byref
 # wintypes for creating windows specific data types
 # windll to access different windows dll lib (kernel32, system32)
 # create_unicode_buffer storage for window names
-# byref is for pointers
+# byref is for pointers, what ever that is
 
-# This program works around the 100 read & write limit of the GoogleAPI
+# Some rules of this program are there just to work around the 100 read & write limit of the GoogleAPI
 
 # spreadsheet ID, file name, or link ❌
 spreadsheetID = "1ImM0Ph_LP26BqJPKBauNl18mZVEvziyS0O5X9ecElMQ"  
-
 spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Instantiate the spreadsheet
-archiveSheetTitle = "Previous Activity Data"   # name of sheet/workspace to put archival data in
-currentdaySheetTitle = "Today's Activity Log"   # name of sheet to put current day's data in
-# logSheet = spreadsheet[currentdaySheetTitle]   # spreadsheet object - current day 
-# archiveSheet = spreadsheet[archiveSheetTitle]   # spreadsheet object - archival
+archiveSheet = "Previous Activity Data"   # name of sheet/workspace to put archival data in
+currentdaySheet = "Today's Activity Log"   # name of sheet to put current day's data in
 
 def getActivityInfo():
     # Gets information on current active/foreground window. 
@@ -39,10 +36,12 @@ def getActivityInfo():
 # ex. - "Youtube.com - Brave" - can be used to track which sites are most visited
 browserExeNames =  ("brave.exe", "firefox.exe", "chrome.exe")
 
-def writeToSpreadsheet(spreadsheetObj, sheet, cellLocation, inputText ):
+def writeToSpreadsheet(spreadSheetDict, cellLocation, inputDict ):   # ❌😫 Needs editing
     # Function that writes to the spreadsheet
+    # spreadSheetDict accepts spreadSheetInf Dictionary
+    # inputDict accepts activityDict
     spreadsheet = spreadsheetObj[sheet]
-    spreadsheet[cellLocation] = inputText
+    spreadsheet[cellLocation] = inputDict
 
 class LASTINPUTINFO(ctypes.Structure):
     # Special class for storing lastinputinfo data from windows
@@ -52,94 +51,75 @@ class LASTINPUTINFO(ctypes.Structure):
 lastInputInfo = LASTINPUTINFO()  # Instantiate class
 lastInputInfo.cbSize = ctypes.sizeof(LASTINPUTINFO)   # set size of class - microsoft requirement
 
-def userActivityCheck(activityList):
+def userActivityCheck(activityList):  #❌ Dictionary now
     # This function determines whether the user is active by looking at the inputActivity list.
     # The list contains 7 states.
-    inactiveStates = 0
-    timeGapTolerance = 300  # time in ms considered when deciding if gap means the user is active or not
+    timeGapTolerance = 800  # time in ms considered when deciding if gap means the user is active or not
+    inactiveStates = 0  # storage of number of inactive states in the list
     for x, y in enumerate(activityList):
         if y > timeGapTolerance:
             inactiveStates += 1
-    if inactiveStates <= 5:  # 
+    percentageOfStates = .75 # Percentage of the inactiveStates before proclaiming the user is Inactive
+    if inactiveStates <= inactiveStates*percentageOfStates:  
         return True
-    elif inactiveStates > 5:
+    elif inactiveStates > inactiveStates*percentageOfStates: 
         return False
-    pass
 
-# Columns
-startTimeCol = chr(65)
-endTimeCol = chr(66)
+
+# ========== User configurable variables ============
+# Column address - generate letters using ASCII letter codes
+startTimeCol = chr(65)  # column A
+endTimeCol = chr(66) # Column B
 programNameCell = chr(69)
 windowNameCell = chr(70)
-#timeSpentCell = chr(69)
 
 cellEntryStartRow = 2   # what row the data will start to be entered  
-loopCount = 0 
-startTime = time.time() # Get time when the script was first ran
-endTime = 0
-windowChangeCount = 0  # Current number of window changes
+activityMinTime = 0  # min sec that must pass before action is considered.
 
-activityMinTime = 2.3  # min sec that must pass before action is considered.
+
+# ========== Program only variables =============
+
+# === Time ===
+startTime = time.time() # Gets time when the script was first ran
+endTime = 0  # used to keep track of program/activity end time
+
 prevWindowName = ''
 prevProcessName = ''
-windowName = ''
-userStates = []
-lastActiveTime = 0
-lastInactiveTime = 0
+
+inactiveTimes = 0 
+userInactivityStart = 0
+userPrevInactivityEnd = 0
+
+#  === Dicts 😞
+spreadSheetInf = {"instance": spreadsheet, "currentDaySheet": currentdaySheet, "archiveSheet":archiveSheet}
+activityDict = {"processName": "", "windowName": "" , "actStart": "", "actEnd": ""}   # Latest activity and all related info will be stored here.
+currentActLog = []   # Keeps track of times that the user went active and inactive.
+inactivityTimes = {"start": 0, "end": 0 }   # Every time user gets inactive, add current time to start.
+
+# === counters 
+loopCount = 0   # counts while Loops
+windowChangeCount = 0  # Current number of window changes
 while True:
     loopCount += 1
 
     windll.user32.GetLastInputInfo(byref(lastInputInfo))   # Store last input time to class
     lastInputTime = lastInputInfo.dwTime   # Access last input time - then store to var
     tickCount = windll.kernel32.GetTickCount()   # Get Current time in ms, for comparison
-    userStates.append(tickCount-lastInputTime)
+    userIsActive = userActivityCheck(tickCount-lastInputTime)  # Send the last 7 list values to func, may be expanded
+    activityDict["windowName"], activityDict["processName"], activityTimestamp = getActivityInfo()
 
-    userIsActive = userActivityCheck(userStates[-7:])  # Send the last 7 list values to func
-
-    windowName, processName, activityTimestamp = getActivityInfo()
     if prevWindowName != '': 
-        if not userIsActive:
-            lastActiveTime = time.time()
-            if windowName == prevWindowName:
-                print(userIsActive)            
-                continue
-            '''
-            elif windowName != prevWindowName:
-                endTime = time.time()
+            if activityDict["windowName"] == prevWindowName:
+                pass
+            if activityDict["windowName"] != prevWindowName:                
                 if endTime-startTime >= activityMinTime:   # Only perform action if action is greater than 1sec
                     cellNumber = str(windowChangeCount + cellEntryStartRow)
-                    """
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, programNameCell + cellNumber, prevProcessName)
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, windowNameCell + cellNumber, prevWindowName)
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, startTimeCol + cellNumber, startTime)
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, endTimeCol + cellNumber, endTime)
-                    """
-                    print(prevProcessName + "\n" + prevWindowName + "\n" + str(endTime-startTime))
+                    print(activityDict)                    
                     startTime = activityTimestamp
                     windowChangeCount += 1
-                elif endTime-startTime < activityMinTime:
-                    endTime += time.time() - endTime '''
-        elif userIsActive:            
-            if windowName != prevWindowName:
-                endTime = time.time()
-                if endTime-startTime >= activityMinTime:   # Only perform action if action is greater than 1sec
-                    cellNumber = str(windowChangeCount + cellEntryStartRow)
-                    """
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, programNameCell + cellNumber, prevProcessName)
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, windowNameCell + cellNumber, prevWindowName)
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, startTimeCol + cellNumber, startTime)
-                    writeToSpreadsheet(spreadsheet, currentdaySheetTitle, endTimeCol + cellNumber, endTime)
-                    """
-                    print(prevProcessName + "\n" + prevWindowName + "\n" + str(endTime-startTime))
-                    startTime = activityTimestamp
-                    windowChangeCount += 1
-                elif endTime-startTime < activityMinTime:
-                    endTime += time.time() - endTime
-            elif windowName == prevWindowName:
-                #print(userIsActive)            
-                continue
 
-    prevWindowName = windowName
-    prevProcessName = processName
+    prevWindowName = activityDict["windowName"]
+    prevProcessName = activityDict["processName"]
 
 print(loopCount)
+
