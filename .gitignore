@@ -1,0 +1,9 @@
+# These are the required keys and credentials from google
+# How to get it: https://github.com/asweigart/ezsheets#quickstart-guide
+token-sheets.pickle
+token-drive.pickle
+credentials-sheets.json
+
+# virtual env, not required
+Pipfile
+Pipfile.lock

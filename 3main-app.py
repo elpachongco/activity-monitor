@@ -65,7 +65,7 @@ def getActivityInfo():
     
     # Run a command and store output to var (CSV)
     processNameCSV = os.popen(f"tasklist /FI \"pid eq {pid.value}\" /FO CSV").read()  
-    readCSV = csv.reader(processNameCSV)   # Read the CSV
+    readCSV = csv.reader(processNameCSV)   # Read the CSVI
     listCSV = list(readCSV)   # Make it a list 
     exeName = listCSV[10][0]   # Position of the program name in the list 
     
@@ -83,7 +83,7 @@ def userIsActiveCheck(timeGap):  #Dictionary now - Edit - DONE ✔✔✅😊
 # ========== User configurable variables ============
 # Column address - generate letters using ASCII letter codes
 cellEntryStartRow = 2  # what row the data will start to be entered  
-activMinTime = 1.3  # min sec that must pass before action is considered.
+activMinTime = .2  # min sec that must pass before action is considered.
 
 # ========== non-configurable program variables =============
 currentWindowName = ''   # temp storage for window name data.
