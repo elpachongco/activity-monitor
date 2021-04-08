@@ -1,17 +1,21 @@
 # Todo list:
-#     1. add blacklist feature that will not list activities if a word is included in the window name
-#             ex. is Binance where the window name changes every second. This may cause the program to reach googles api limits
-#              another ex is when I'm watching the tech tip 🙀
-#     2. Better initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
-#     3. Better google sheets dashboard. might use google data studio.
-#     4. BUG#1 occurence of -1,617,418,605.75 and the positive equivalent, sometimes
-#        - hypothesis: the bug is caused by the variable "activityMinTime" 
-#     5. Auto program sleep if user is inactive for a set amount of time
+    # 1. add blacklist feature that will not list activities if a word is included in the window name
+    #     ex. is Binance where the window name changes every second. This may cause the program to reach googles api limits
+    #         another ex is when I'm watching the tech tip 🙀
+    # 6. Workaround for sites that change their page name e.g. messaging sites where notifications change window name, trading where price is displayed every sec
+    # 2. Better initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
+    # 3. Better google sheets dashboard. might use google data studio.
+    # 
+    # 4. BUG#1 occurence of -1,617,418,605.75 and the positive equivalent, sometimes
+    #   - hypothesis: the bug is caused by the variable "activityMinTime" 
+    #   - DONE
+    # 5. Auto program sleep if user is inactive for a set amount of time
+    # 7. Make the program invisible .pyw, logging... - In progress
 
 
 # This is an activity monitor app for Windows.
 import ezsheets as ezsh   # googlesheets api wrapper
-import time, os, csv   
+import time, os, csv, logging   
 import ctypes  
 from ctypes import wintypes, windll, create_unicode_buffer, byref
 # wintypes for creating windows specific data types
@@ -27,6 +31,8 @@ spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Instantiate the spreadsheet
 archiveSheet = "Previous Activity Data"   # name of sheet/workspace to put archival data in
 currentdaySheet = "Today's Activity Log"   # name of sheet to put current day's data in
 
+# Logging file initialization
+logging.basicConfig(format='%(asctime)s %(message)s', filename='main-app.log', filemode= 'w', encoding='utf-8', level=logging.INFO)
 
 
 def writeToSpreadsheet(spreadSheetDict, column, row, inputDict ):   # ❌😫 Needs editing, This function is super specific for this program only
@@ -83,7 +89,14 @@ def userIsActiveCheck(timeGap):  #Dictionary now - Edit - DONE ✔✔✅😊
 # ========== User configurable variables ============
 # Column address - generate letters using ASCII letter codes
 cellEntryStartRow = 2  # what row the data will start to be entered  
-activMinTime = .2  # min sec that must pass before action is considered.
+activMinTime = .8  # min sec that must pass before action is considered.
+
+# The program censors the window name if a word from this list is found. Uppercase  
+censorTerms = ["porn", "hentai" ]  # It's just the reality     
+
+# The program will not list the the whole activity if it's in this list
+blacklistTerms = []  # not active
+
 
 # ========== non-configurable program variables =============
 currentWindowName = ''   # temp storage for window name data.
@@ -121,16 +134,17 @@ while True:
         if userAwake == False:
             inactivityTime["start"] += time.time()
             userAwake = True
-            print(f"Cell: {windowChangeCount}")
-            print("xxxxxxxxxxxxxxxxxxxxxx")
-            print("Start: " + str(inactivityTime["start"]))
+            logging.info(f"\nCell: {windowChangeCount}\n" + "x"*10 + "\nStart: " + str(inactivityTime["start"]))
     elif userIsActive:
         if userAwake == True:   # 
             inactivityTime["end"] += time.time()  # when user awakes, inactivity ends
             userAwake = False  # User should first be inactive before awakening again
-            print("End: " + str(inactivityTime["end"]))
+            logging.info("\nEnd: " + str(inactivityTime["end"]))
 
-    if activityDict["windowName"] != '':   # When the program is ran for the first time, windowName is = "" 
+    # When the program is ran for the first time, windowName is = ""
+    if activityDict["windowName"] != '':    
+
+        # Window change
         if currentWindowName != activityDict["windowName"]: 
 
             # Handles the missing end time when the user is inactive and a change of window occurs (e.g. waiting for a webpage to load)
@@ -139,18 +153,25 @@ while True:
                 userAwake = False 
 
             activityDict["actEnd"] = time.time()                    
-            totalWindowDuration = activityDict["actEnd"] - activityDict["actStart"]
+            totalWindowDuration = activityDict["actEnd"] - activityDict["actStart"]            
+
+            # Don't execute if the window change is less than activMinTime 
             if totalWindowDuration  >= activMinTime: 
                 cellNumber = str(windowChangeCount + cellEntryStartRow)
 
                 totalInactDuration = str(inactivityTime["end"] - inactivityTime["start"])
                 activityDict["inactDuration"] = totalInactDuration
-                writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
-                print("FStart: " + str(inactivityTime["start"]))
-                print("FEnd: " + str(inactivityTime["end"]))
-                print(f"total Inactivity: {totalInactDuration}" )
-                print('===============')
 
+                # Censoring, not so elegant solution
+                for index, item in enumerate(censorTerms):
+                    if item.upper() in activityDict["windowName"].upper():
+                        activityDict["windowName"] = "[redacted]" # hehe
+
+                writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
+
+                # Logging purpose
+                logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
+                
                 activityDict["actStart"] = time.time()  # Set a new start time for the new activity
                 
                 windowChangeCount += 1   # new detected window means that a window change happened
