@@ -5,13 +5,9 @@
     # 6. Workaround for sites that change their page name e.g. messaging sites where notifications change window name, trading where price is displayed every sec
     # 2. Better initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
     # 3. Better google sheets dashboard. might use google data studio.
-    # 
-    # 4. BUG#1 occurence of -1,617,418,605.75 and the positive equivalent, sometimes
-    #   - hypothesis: the bug is caused by the variable "activityMinTime" 
-    #   - DONE
-    # 5. Auto program sleep if user is inactive for a set amount of time
-    # 7. Make the program invisible .pyw, logging... - In progress
-
+    # 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
+    # 8. Handle Blacklisting and censoring in a file instead of in-program
+    # 9. End of day data saving
 
 # This is an activity monitor app for Windows.
 import ezsheets as ezsh   # googlesheets api wrapper
@@ -32,7 +28,7 @@ archiveSheet = "Previous Activity Data"   # name of sheet/workspace to put archi
 currentdaySheet = "Today's Activity Log"   # name of sheet to put current day's data in
 
 # Logging file initialization
-logging.basicConfig(format='%(asctime)s %(message)s', filename='main-app.log', filemode= 'w', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s \n %(message)s', filename='main-app.log', filemode= 'w', encoding='utf-8', level=logging.INFO)
 
 
 def writeToSpreadsheet(spreadSheetDict, column, row, inputDict ):   # ❌😫 Needs editing, This function is super specific for this program only
@@ -91,12 +87,13 @@ def userIsActiveCheck(timeGap):  #Dictionary now - Edit - DONE ✔✔✅😊
 cellEntryStartRow = 2  # what row the data will start to be entered  
 activMinTime = .8  # min sec that must pass before action is considered.
 
-# The program censors the window name if a word from this list is found. Uppercase  
-censorTerms = ["porn", "hentai" ]  # It's just the reality     
+# The program censors the window name if a word from this text file is found.   
+with open("censorList.txt", "r") as censorTerms:    
+    censorTerms = censorTerms.readlines()
 
-# The program will not list the the whole activity if it's in this list
-blacklistTerms = []  # not active
-
+# The program will not list the the whole activity if an item in the list is found.
+with open("ignoreList.txt", "r") as ignoreTerms:
+    ignoreTerms = ignoreTerms.readlines()
 
 # ========== non-configurable program variables =============
 currentWindowName = ''   # temp storage for window name data.
@@ -134,16 +131,15 @@ while True:
         if userAwake == False:
             inactivityTime["start"] += time.time()
             userAwake = True
-            logging.info(f"\nCell: {windowChangeCount}\n" + "x"*10 + "\nStart: " + str(inactivityTime["start"]))
+            # logging.info(f"\nCell: {windowChangeCount}\n" + "x"*10 + "\nStart: " + str(inactivityTime["start"]))
     elif userIsActive:
         if userAwake == True:   # 
             inactivityTime["end"] += time.time()  # when user awakes, inactivity ends
             userAwake = False  # User should first be inactive before awakening again
-            logging.info("\nEnd: " + str(inactivityTime["end"]))
+            # logging.info("\nEnd: " + str(inactivityTime["end"]))
 
     # When the program is ran for the first time, windowName is = ""
     if activityDict["windowName"] != '':    
-
         # Window change
         if currentWindowName != activityDict["windowName"]: 
 
@@ -162,12 +158,23 @@ while True:
                 totalInactDuration = str(inactivityTime["end"] - inactivityTime["start"])
                 activityDict["inactDuration"] = totalInactDuration
 
-                # Censoring, not so elegant solution
-                for index, item in enumerate(censorTerms):
+                # Censoring, not so elegant solution. Feels like there should be a better way to this...
+                for item in censorTerms:
+                    #strip \n from the readline strings
+                    item = item.splitlines()
+                    item = item.lstrip()
+                    item = item.rstrip()
                     if item.upper() in activityDict["windowName"].upper():
                         activityDict["windowName"] = "[redacted]" # hehe
+        
+                for item in ignoreTerms:  # Only write if to spreadsheet if it doesn't contain ignore words
+                    #strip \n from the readline strings
+                    item = item.splitlines()
+                    item = item.lstrip()
+                    item = item.rstrip()
+                    if item.upper() not in activityDict["windowName"].upper():
+                        writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
 
-                writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
 
                 # Logging purpose
                 logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")

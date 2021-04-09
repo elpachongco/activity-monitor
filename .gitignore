@@ -7,3 +7,9 @@ credentials-sheets.json
 # virtual env, not required
 Pipfile
 Pipfile.lock
+
+# spreadsheet
+Spreadsheet_Layout.ai
+
+# List of words that will trigger the program to censor the window name
+censorList.txt
