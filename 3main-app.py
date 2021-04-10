@@ -1,14 +1,3 @@
-# Todo list:
-    # 1. add blacklist feature that will not list activities if a word is included in the window name
-    #     ex. is Binance where the window name changes every second. This may cause the program to reach googles api limits
-    #         another ex is when I'm watching the tech tip 🙀
-    # 6. Workaround for sites that change their page name e.g. messaging sites where notifications change window name, trading where price is displayed every sec
-    # 2. Better initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
-    # 3. Better google sheets dashboard. might use google data studio.
-    # 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
-    # 8. Handle Blacklisting and censoring in a file instead of in-program
-    # 9. End of day data saving
-
 # This is an activity monitor app for Windows.
 import ezsheets as ezsh   # googlesheets api wrapper
 import time, os, csv, logging   
@@ -27,7 +16,7 @@ spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Instantiate the spreadsheet
 archiveSheet = "Previous Activity Data"   # name of sheet/workspace to put archival data in
 currentdaySheet = "Today's Activity Log"   # name of sheet to put current day's data in
 
-# Logging file initialization
+# Basic logging
 logging.basicConfig(format='%(asctime)s \n %(message)s', filename='main-app.log', filemode= 'w', encoding='utf-8', level=logging.INFO)
 
 
@@ -45,8 +34,6 @@ def writeToSpreadsheet(spreadSheetDict, column, row, inputDict ):   # ❌😫 Ne
     spreadsheet[cellColumn["inactiveTime"] + row] = str(inputDict["inactDuration"])
     spreadsheet[cellColumn["programName"] + row] = str(inputDict["processName"])
     spreadsheet[cellColumn["windowName"] + row] = str(inputDict["windowName"])
-    
-    # I have a feeling that the 
 
 class LASTINPUTINFO(ctypes.Structure):
     # Special class for storing lastinputinfo data from windows
@@ -73,7 +60,7 @@ def getActivityInfo():
     
     return str(buf.value), str(exeName)  # Return the window text, name of program running the window.
 
-def userIsActiveCheck(timeGap):  #Dictionary now - Edit - DONE ✔✔✅😊
+def userIsActiveCheck(timeGap): 
     # Decide whether user is inactive by comparing the inactivity time to accepted delay between last input time and current time
     timeGapTolerance = 800  # time in ms considered when deciding if gap means the user is active or not
     if timeGap <= timeGapTolerance:  
@@ -83,7 +70,6 @@ def userIsActiveCheck(timeGap):  #Dictionary now - Edit - DONE ✔✔✅😊
 
 
 # ========== User configurable variables ============
-# Column address - generate letters using ASCII letter codes
 cellEntryStartRow = 2  # what row the data will start to be entered  
 activMinTime = .8  # min sec that must pass before action is considered.
 
@@ -102,7 +88,7 @@ userAwake = False   # user Awake is when the user goes from being inactive to ac
 totalInactDuration = 0
 totalWindowDuration = 0
 
-#  === Dicts 😞
+#  === Dicts 
 currentDaySS = {"instance": spreadsheet, "sheet": currentdaySheet}   # FIX ARRANGEMENTS OF DICTIONARIES 
 activityDict = {"processName": "", "windowName": "" , "actStart": "", "actEnd": "", "inactDuration": ""}   # Latest activity and all related info will be stored here.
 cellColumn = {"startTime": "A", "endTime": "B", "inactiveTime": "E", "programName": "F", "windowName": "G"}
@@ -161,31 +147,47 @@ while True:
                 # Censoring, not so elegant solution. Feels like there should be a better way to this...
                 for item in censorTerms:
                     #strip \n from the readline strings
-                    item = item.splitlines()
-                    item = item.lstrip()
-                    item = item.rstrip()
-                    if item.upper() in activityDict["windowName"].upper():
+                    word = item.splitlines()
+                    word = word[0].lstrip()
+                    word = word.rstrip()
+                    if word.upper() in activityDict["windowName"].upper():
                         activityDict["windowName"] = "[redacted]" # hehe
         
                 for item in ignoreTerms:  # Only write if to spreadsheet if it doesn't contain ignore words
                     #strip \n from the readline strings
-                    item = item.splitlines()
-                    item = item.lstrip()
-                    item = item.rstrip()
-                    if item.upper() not in activityDict["windowName"].upper():
+                    word = item.splitlines()
+                    word = word[0].lstrip()
+                    word = word.rstrip()
+                    if word.upper() not in activityDict["windowName"].upper():
                         writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
-
-
-                # Logging purpose
-                logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
+                        windowChangeCount += 1   # new detected window means that a window change happened
+                        # Logging purpose
+                        logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
                 
                 activityDict["actStart"] = time.time()  # Set a new start time for the new activity
-                
-                windowChangeCount += 1   # new detected window means that a window change happened
-            
+                            
                 # Attempt to solve bug#1. More info on github
                 inactivityTime["start"] = 0     
                 inactivityTime["end"] = 0
 
     activityDict["windowName"] = currentWindowName
     activityDict["processName"] = currentProcess   
+
+
+# Todo list:
+# DONE:
+# 1. add blacklist feature that will not list activities if a word is included in the window name
+#     ex. is Binance where the window name changes every second. This may cause the program to reach googles api limits
+#         another ex is when I'm watching the tech tip 🙀
+# 6. Workaround for sites that change their page name e.g. messaging sites where notifications change window name, trading where price is displayed every sec
+# 8. Handle Blacklisting and censoring in a file instead of in-program -DONE
+
+# Inprogress:
+# 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
+# 3. Better google sheets dashboard. might use google data studio.
+#
+
+# Queued:
+# 9. End of day data saving
+# 2. Better initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
+

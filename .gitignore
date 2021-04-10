@@ -13,3 +13,4 @@ Spreadsheet_Layout.ai
 
 # List of words that will trigger the program to censor the window name
 censorList.txt
+ignoreList.txt
