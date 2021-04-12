@@ -6,3 +6,6 @@ credentials-sheets.json
 
 # List of words that will trigger the program to censor the window name
 keywordList.txt
+
+# logfile
+main-app.log
