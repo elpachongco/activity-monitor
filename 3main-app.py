@@ -3,22 +3,47 @@ import ezsheets as ezsh   # googlesheets api wrapper
 import time, os, csv, logging   
 import ctypes  
 from ctypes import wintypes, windll, create_unicode_buffer, byref
-# wintypes for creating windows specific data types
-# windll to access different windows dll lib (kernel32, system32)
-# create_unicode_buffer storage for window names
-# byref is for pointers, what ever that is
+# ctypes handles some of Windows-specific functions
+import sys  # only for the sys.exit()
 
-# Some rules of this program are there just to work around the 100 read & write limit of the GoogleAPI
 
 # spreadsheet ID, file name, or link ❌ HAVENT TRIED IT
 spreadsheetID = "1ImM0Ph_LP26BqJPKBauNl18mZVEvziyS0O5X9ecElMQ"  
-spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Instantiate the spreadsheet
+spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Create the spreadsheet object
 archiveSheet = "Previous Activity Data"   # name of sheet/workspace to put archival data in
 currentdaySheet = "Today's Activity Log"   # name of sheet to put current day's data in
 
+# Get ignorelist and censorlist
+def getKeywordList():
+    ignore = []
+    censor = []
+    with open("keywordList.txt") as keywordList:
+        keywordList = keywordList.readlines()
+    isIgnore = False
+    isCensor = False
+    for index, item in enumerate(keywordList):
+        item = item.rstrip(" \n").lstrip().lower()
+        if item != '':
+            if item[0] == '#':
+                print(item)
+                if "ignore" in item:
+                    isIgnore = True
+                    isCensor = False
+                    continue
+                elif "censor" in item:
+                    isIgnore = False
+                    isCensor = True
+                    continue
+                elif "ignore" or "censor" not in item:
+                    continue
+            if isIgnore == True:
+                ignore.append(item)
+            elif isCensor == True:
+                censor.append(item)
+    return ignore, censor   # List
+
 # Basic logging
 logging.basicConfig(format='%(asctime)s \n %(message)s', filename='main-app.log', filemode= 'w', encoding='utf-8', level=logging.INFO)
-
 
 def writeToSpreadsheet(spreadSheetDict, column, row, inputDict ):   # ❌😫 Needs editing, This function is super specific for this program only
     # Function that writes to the spreadsheet
@@ -73,13 +98,6 @@ def userIsActiveCheck(timeGap):
 cellEntryStartRow = 2  # what row the data will start to be entered  
 activMinTime = .8  # min sec that must pass before action is considered.
 
-# The program censors the window name if a word from this text file is found.   
-with open("censorList.txt", "r") as censorTerms:    
-    censorTerms = censorTerms.readlines()
-
-# The program will not list the the whole activity if an item in the list is found.
-with open("ignoreList.txt", "r") as ignoreTerms:
-    ignoreTerms = ignoreTerms.readlines()
 
 # ========== non-configurable program variables =============
 currentWindowName = ''   # temp storage for window name data.
@@ -99,10 +117,16 @@ loopCount = 0   # counts while Loops, no purpose
 windowChangeCount = 0  # Current number of window changes, cell row location is attached to this var
 
 # === start preparation
-activityDict["actStart"] = time.time()   # Called when the program starts.
+activityDict["actStart"] = time.time()   # Called when the program starts.    
 
-while True:
+# The program censors the window name if a word from this text file is found.   
+ignoreList, censorList = getKeywordList()
+# The program will not list the the whole activity if an item in the list is found.
+print(ignoreList)
+print(censorList)
+while True:  # == True
     loopCount += 1 
+        # This will do for now but it should later be modified to a appropriate solution (multiprocessing ques and pipes?)
     # === Section needs more cleaning
     # Detects user Inactivity
     windll.user32.GetLastInputInfo(byref(lastInputInfo))   # Store last input time to class
@@ -117,12 +141,10 @@ while True:
         if userAwake == False:
             inactivityTime["start"] += time.time()
             userAwake = True
-            # logging.info(f"\nCell: {windowChangeCount}\n" + "x"*10 + "\nStart: " + str(inactivityTime["start"]))
     elif userIsActive:
         if userAwake == True:   # 
             inactivityTime["end"] += time.time()  # when user awakes, inactivity ends
             userAwake = False  # User should first be inactive before awakening again
-            # logging.info("\nEnd: " + str(inactivityTime["end"]))
 
     # When the program is ran for the first time, windowName is = ""
     if activityDict["windowName"] != '':    
@@ -145,49 +167,55 @@ while True:
                 activityDict["inactDuration"] = totalInactDuration
 
                 # Censoring, not so elegant solution. Feels like there should be a better way to this...
-                for item in censorTerms:
-                    #strip \n from the readline strings
-                    word = item.splitlines()
-                    word = word[0].lstrip()
-                    word = word.rstrip()
-                    if word.upper() in activityDict["windowName"].upper():
+                for item in censorList:
+                    if item in activityDict["windowName"].lower():
                         activityDict["windowName"] = "[redacted]" # hehe
-        
-                for item in ignoreTerms:  # Only write if to spreadsheet if it doesn't contain ignore words
-                    #strip \n from the readline strings
-                    word = item.splitlines()
-                    word = word[0].lstrip()
-                    word = word.rstrip()
-                    if word.upper() not in activityDict["windowName"].upper():
-                        writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
-                        windowChangeCount += 1   # new detected window means that a window change happened
-                        # Logging purpose
-                        logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
+                        print("censor")
+                        # Use this instead if you want to uncensor the first letter   
+                        # activityDict["windowName"] = str(activityDict["windowName"])[0] + "[redacted]" 
+
+                ignoreActivity = False
+                for item in ignoreList:  # Only write if to spreadsheet if it doesn't contain ignore words
+                    if item in activityDict["windowName"].lower():
+                        print("ignore")
+                        ignoreActivity = True
+
+                if ignoreActivity == False:
+                    writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
+                    windowChangeCount += 1   
+
+                    # Logging purpose
+                    logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
                 
                 activityDict["actStart"] = time.time()  # Set a new start time for the new activity
                             
-                # Attempt to solve bug#1. More info on github
                 inactivityTime["start"] = 0     
                 inactivityTime["end"] = 0
 
     activityDict["windowName"] = currentWindowName
     activityDict["processName"] = currentProcess   
 
+# This will execute when the while loop stops
+sys.exit()
+
 
 # Todo list:
+
+# In progress:
+
+# Queued:
+# 11. User sheets.updateRow() instead
+# 2. Initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
+# 9. End of day data saving 
+# 10. Should ignoreList be in just one file?
+# 11. Put all variables in one file
+
 # DONE:
+# 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
 # 1. add blacklist feature that will not list activities if a word is included in the window name
 #     ex. is Binance where the window name changes every second. This may cause the program to reach googles api limits
 #         another ex is when I'm watching the tech tip 🙀
 # 6. Workaround for sites that change their page name e.g. messaging sites where notifications change window name, trading where price is displayed every sec
 # 8. Handle Blacklisting and censoring in a file instead of in-program -DONE
-
-# Inprogress:
-# 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
 # 3. Better google sheets dashboard. might use google data studio.
-#
-
-# Queued:
-# 9. End of day data saving
-# 2. Better initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
-
+# 12. ignorelist and censorlist in one file
