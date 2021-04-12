@@ -196,7 +196,7 @@ while True:  # == True
     activityDict["processName"] = currentProcess   
 
 # This will execute when the while loop stops
-sys.exit()
+#sys.exit()
 
 
 # Todo list:
