@@ -1,4 +1,3 @@
-# This is an activity monitor app for Windows.
 import ezsheets as ezsh   # googlesheets api wrapper
 import time, os, csv, logging   
 import ctypes  
@@ -6,8 +5,6 @@ from ctypes import wintypes, windll, create_unicode_buffer, byref
 # ctypes handles some of Windows-specific functions
 import sys  # only for the sys.exit()
 
-
-# spreadsheet ID, file name, or link ❌ HAVENT TRIED IT
 spreadsheetID = "1ImM0Ph_LP26BqJPKBauNl18mZVEvziyS0O5X9ecElMQ"  
 spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Create the spreadsheet object
 archiveSheet = "Previous Activity Data"   # name of sheet/workspace to put archival data in
@@ -107,7 +104,7 @@ totalInactDuration = 0
 totalWindowDuration = 0
 
 #  === Dicts 
-currentDaySS = {"instance": spreadsheet, "sheet": currentdaySheet}   # FIX ARRANGEMENTS OF DICTIONARIES 
+currentDaySS = {"instance": spreadsheet, "sheet": currentdaySheet}
 activityDict = {"processName": "", "windowName": "" , "actStart": "", "actEnd": "", "inactDuration": ""}   # Latest activity and all related info will be stored here.
 cellColumn = {"startTime": "A", "endTime": "B", "inactiveTime": "E", "programName": "F", "windowName": "G"}
 inactivityTime = {"start": 0, "end": 0 }   # Every time user gets inactive, add current time to start.
@@ -184,7 +181,7 @@ while True:  # == True
                     writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + cellEntryStartRow , activityDict)
                     windowChangeCount += 1   
 
-                    # Logging purpose
+                    # Logging purpose. Disable this if you don't want the program to put your activity on the logs
                     logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
                 
                 activityDict["actStart"] = time.time()  # Set a new start time for the new activity
@@ -209,7 +206,6 @@ sys.exit()
 # 9. End of day data saving 
 # 10. Should ignoreList be in just one file?
 # 11. Put all variables in one file
-# 13. numbers on names of py files should be removed
 
 # DONE:
 # 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
@@ -220,3 +216,4 @@ sys.exit()
 # 8. Handle Blacklisting and censoring in a file instead of in-program -DONE
 # 3. Better google sheets dashboard. might use google data studio.
 # 12. ignorelist and censorlist in one file
+# 13. numbers on names of py files should be removed
