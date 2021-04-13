@@ -196,19 +196,20 @@ while True:  # == True
     activityDict["processName"] = currentProcess   
 
 # This will execute when the while loop stops
-#sys.exit()
+sys.exit()
 
 
 # Todo list:
 
 # In progress:
 
-# Queued:
+# Queued: some of these will not belong here
 # 11. User sheets.updateRow() instead
 # 2. Initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
 # 9. End of day data saving 
 # 10. Should ignoreList be in just one file?
 # 11. Put all variables in one file
+# 13. numbers on names of py files should be removed
 
 # DONE:
 # 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
