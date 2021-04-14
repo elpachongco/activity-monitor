@@ -4,11 +4,15 @@ import ctypes
 from ctypes import wintypes, windll, create_unicode_buffer, byref
 # ctypes handles some of Windows-specific functions
 import sys  # only for the sys.exit()
+import shelve
 
-spreadsheetID = "1ImM0Ph_LP26BqJPKBauNl18mZVEvziyS0O5X9ecElMQ"  
+print("Activity Logger - Active")
+
+sharedVariable = shelve.open("sharedVariable", "r")
+spreadsheetID = sharedVariable["spreadsheetID"]  
 spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Create the spreadsheet object
-archiveSheet = "Previous Activity Data"   # name of sheet/workspace to put archival data in
-currentdaySheet = "Today's Activity Log"   # name of sheet to put current day's data in
+currentdaySheet = sharedVariable['currentdaySheet']   # name of sheet to put current day's data in
+sharedVariable.close()
 
 # Get ignorelist and censorlist
 def getKeywordList():
@@ -22,7 +26,6 @@ def getKeywordList():
         item = item.rstrip(" \n").lstrip().lower()
         if item != '':
             if item[0] == '#':
-                print(item)
                 if "ignore" in item:
                     isIgnore = True
                     isCensor = False
@@ -90,11 +93,9 @@ def userIsActiveCheck(timeGap):
     elif timeGap > timeGapTolerance:
         return False
 
-
 # ========== User configurable variables ============
 cellEntryStartRow = 2  # what row the data will start to be entered  
 activMinTime = .8  # min sec that must pass before action is considered.
-
 
 # ========== non-configurable program variables =============
 currentWindowName = ''   # temp storage for window name data.
@@ -117,13 +118,16 @@ windowChangeCount = 0  # Current number of window changes, cell row location is 
 activityDict["actStart"] = time.time()   # Called when the program starts.    
 
 # The program censors the window name if a word from this text file is found.   
-ignoreList, censorList = getKeywordList()
 # The program will not list the the whole activity if an item in the list is found.
-print(ignoreList)
-print(censorList)
-while True:  # == True
+ignoreList, censorList = getKeywordList()
+
+
+# This allows the logger to be controlled by the main_app
+sharedVariable = shelve.open("sharedVariable", flag="r")
+while sharedVariable['runLogger'] == True:  # == True
+    sharedVariable.close()
     loopCount += 1 
-        # This will do for now but it should later be modified to a appropriate solution (multiprocessing ques and pipes?)
+    print(loopCount)
     # === Section needs more cleaning
     # Detects user Inactivity
     windll.user32.GetLastInputInfo(byref(lastInputInfo))   # Store last input time to class
@@ -132,8 +136,7 @@ while True:  # == True
     userIsActive = userIsActiveCheck(tickCount-lastInputTime)  
     currentWindowName, currentProcess = getActivityInfo()
 
-    # Logs time of user inactivity -- DONE 😊
-
+    # Logs time of user inactivity 
     if not userIsActive:
         if userAwake == False:
             inactivityTime["start"] += time.time()
@@ -192,8 +195,31 @@ while True:  # == True
     activityDict["windowName"] = currentWindowName
     activityDict["processName"] = currentProcess   
 
-# This will execute when the while loop stops
+    # After a loop, read sharedVariable again
+    sharedVariable = shelve.open("sharedVariable", flag="r")
+
+# Code below will execute when the while loop stops
+
+sharedVariable.close() # Shelf will remain open when the while loop ends
+
+# Save the last cell input location for [future] reference?
+with shelve.open("sharedVariable", flag="c") as sharedVariable:
+    sharedVariable['lastCellInput'] = windowChangeCount + cellEntryStartRow
+
+print("logging close")
 sys.exit()
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Todo list:

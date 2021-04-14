@@ -4,8 +4,13 @@ token-sheets.pickle
 token-drive.pickle
 credentials-sheets.json
 
-# List of words that will trigger the program to censor the window name
+# Contains your ignore list and censor list
 keywordList.txt
 
-# logfile
+# logs, this would include your 
 app.log
+
+# Shelf file
+sharedVariable.bak
+sharedVariable.dat
+sharedVariable.dir
