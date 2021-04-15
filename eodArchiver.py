@@ -11,35 +11,100 @@ import shelve
 
 print("End of Day Archiver - Active")
 
-# Get spreadsheet data
+#Get spreadsheet data
 sharedVariable = shelve.open("sharedVariable", "r")
 spreadsheetID = sharedVariable["spreadsheetID"]  
 spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Create the spreadsheet object
 currentdaySheet = sharedVariable['currentdaySheet']
 archiveSheet = sharedVariable['archiveSheet']   
-# calculationSheet = sharedVariable['calculationSheet']
+calculationSheet = sharedVariable['calculationSheet']
+dayNumber = sharedVariable['dayNumber']
 sharedVariable.close()
 
-# columns to clear are the same rows that will be 
-columnsToClear = ['A', 'B','E','F','G']
+currentdaySheet = spreadsheet[currentdaySheet]
+archiveSheet = spreadsheet[archiveSheet]
+calculationSheet = spreadsheet[calculationSheet]
 
-rowContents = []
-# Get contents of row 1 for columns that will be cleared
-for item in columnsToClear:
-    columnNumber = ezsh.getColumnNumberOf(item)
-    rowContents.append(spreadsheet[currentdaySheet][columnNumber, 1])
-    
-# Get necessary data and put them to the archival sheet 
-dictOfArchivalData = {"Total InactivityT": 0, "Total ActivityT": 0, "Date": 0, "Average Time spent": 0, "Data Validity": 0,}
+# Get necessary data and put them to the archival sheet
+class DailyData:   
+    # this class accepts two lists:
+    # Origin, and Destination.
+    # both lists contain 1. sheet object, and 2. The location of the cell in the sheet 
 
-# Clear the listed columns 
-print("clearing columns")
-time.sleep(5)
+    # Class Variables 
+    archiveSheet = ''
+    calculationSheet = ''
+    rowNumber = '' 
 
-# Restore row 1 headers
-for index, item in enumerate(columnsToClear):
-    columnNumber = ezsh.getColumnNumberOf(item)
-    spreadsheet[currentdaySheet][columnNumber, 1] = rowContents[index]
+    # OriginCell accepts a list, destinationCell accepts cell location info ['A3']
+    def __init__(self, originCell, destinationCell):
+        self.originCell = originCell
+        self.destinationCell = destinationCell
+        
+    def archive(self):    # Get the data & write it 
+        # sheet object
+        originCellSheet = self.calculationSheet
+        # cell location  
+        originCellLoc = self.originCell
 
-# exit
-sys.exit()
+        destinationCellSheet = self.archiveSheet  # Class variable
+        destinationCellLoc = self.destinationCell[0] + str(rowNumber)
+        
+        # title of the sheets
+        originSheetTitle = originCellSheet.title 
+        destinationSheetTitle = destinationCellSheet.title
+
+        # spreadsheet object
+        spreadsheet = originCellSheet.spreadsheet
+
+        # Write. 
+        spreadsheet[destinationSheetTitle][destinationCellLoc] = spreadsheet[originSheetTitle][originCellLoc] s
+
+# Data that  will be archived at the End Of Day
+inputStartRow = 2  
+rowNumber = dayNumber + inputStartRow   # row number for archive sheet
+
+start = time.time()
+
+DailyData.archiveSheet = archiveSheet
+DailyData.calculationSheet = calculationSheet
+DailyData.rowNumber = rowNumber
+
+
+# archive function takes care of the row of the destination cell
+# But it's okay to put there 
+cellLocations = [
+                # [Origin, Destination]
+                ['A3', 'A2'], # Data validity
+                ['A5', 'A3'], # Total Inactivity
+                ['A7', 'A4'], # Total Activity
+                ['A9', 'A5'], # Unique windows
+                ['A13', 'A6'] # Average time spent
+                ]
+
+for item in cellLocations:
+    archiveItem = DailyData(item[0], item[1])
+    archiveItem.archive()
+
+end = time.time()
+
+print(end - start)
+
+
+# columnsToClear = ['A', 'B','E','F','G']
+# # Clean currentday spreadsheet, remove entries then restore row 1
+# for index, columnLetter in enumerate(columnsToClear):
+#     # Get Column Number
+#     columnNumber = ezsh.getColumnNumberOf(columnLetter)
+
+#     # Get first item of that Column
+#     # Store it 
+#     columnFirstRow = currentdaySheet[columnNumber, 1],
+#     # time.sleep(3)
+#     # Clear Column
+#     currentdaySheet.updateColumn(columnNumber, columnFirstRow)
+
+# print("Daily Data cleared & restored ")
+
+# # exit
+# sys.exit()

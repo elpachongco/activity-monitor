@@ -52,3 +52,21 @@ I also ignore the character "●" for VSCODE. - This needs UTF-16 encoding.
 
 
 ##### Google api read/write limit
+
+### Todo List  
+- User sheets.updateRow() instead  
+- Initialization - when the script is ran, save all the current spreadsheet data then  clear it to make way for new data  
+- End of day data saving   
+ 
+##### DONE:  
+- Should ignoreList be in just one file? (Ignore list & censor list merged to one file)  
+- Put all variables in one file (somewhat, shared variables now in Shelf sharedVariables)
+- Make the program headless .pyw, logging... (In progress - logging DONE, headless mode not sensible atm  )
+- add blacklist feature that will not list activities if a word is included in the window name  (DONE)
+    ex. is Binance where the window name changes every second. This may cause the program to reach googles api limits
+        another ex is when I'm watching the tech tip 🙀  
+- Workaround for sites that change their page name e.g. messaging sites where   notifications change window name, trading where price is displayed every sec (Done? put those types of window into the ignore list)
+- Handle Blacklisting and censoring in a file instead of in-program -DONE  
+- Better google sheets dashboard. might use google data studio. (Is this a todo?)  
+- ignorelist and censorlist in one file  (DONE)
+- numbers on names of py files should be removed (Done, this affected importing)

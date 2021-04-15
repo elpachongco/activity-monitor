@@ -14,6 +14,10 @@ currentdaySheet = "Today's Activity Log"
 archiveSheet = "Previous Activity Data"
 calculationSheet = "Calculations"
 
+# python program names
+actLoggerFileName = "activitylogger.py"
+eodArchiverFileName = "eodArchiver.py"
+
 
 # This is here so that the common spreadsheet data (id & stuff) is just in one place
 # Store the data to a shelf  
@@ -22,14 +26,12 @@ with shelve.open("sharedVariable", flag="c") as sharedVariable:
     sharedVariable['currentdaySheet'] = currentdaySheet
     sharedVariable['archiveSheet'] = archiveSheet
     sharedVariable['calculationSheet'] = calculationSheet
+    sharedVariable['dayNumber'] = 0
 
-def startProgram(command):
-    os.system('py ' + str(command))   # not sure if this would work on other windows systems
-    print("start program:" + str(command) + "done")
+def startProgram(pyFileName):
+    os.system('py ' + str(pyFileName))   # not sure if this would work on other windows systems
+    print("start program:" + str(pyFileName) + "done")
 
-# This should match the file names of the programs. else it will not function properly
-actLoggerFileName = "activitylogger.py"
-eodArchiverFileName = "eodArchiver.py"
 
 # The logger will need the 'runLogger' set to True
 with shelve.open("sharedVariable", flag="c") as sharedVariable:
@@ -48,9 +50,9 @@ while True:
         # Terminate the activity logger
         with shelve.open("sharedVariable", flag="c") as sharedVariable:
             sharedVariable['runLogger'] = False
+            sharedVariable['dayNumber'] += 1
 
-        # Record activity into archival spreadsheet 
-        # Reset cells using updatecolumn()        
+        # Record archival data, then reset the daily data columns
         startProgram(eodArchiverFileName)  # Threading is unnecesary
 
         # Turn the activity logger on again

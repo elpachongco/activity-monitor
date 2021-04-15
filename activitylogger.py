@@ -45,11 +45,11 @@ def getKeywordList():
 # Basic logging
 logging.basicConfig(format='%(asctime)s \n %(message)s', filename='app.log', filemode= 'w', encoding='utf-8', level=logging.INFO)
 
-def writeToSpreadsheet(spreadSheetDict, column, row, inputDict ):   # ❌😫 Needs editing, This function is super specific for this program only
+def writeToSpreadsheet(spreadSheetDict, column, row, inputDict ): 
     # Function that writes to the spreadsheet
     # spreadSheetDict accepts spreadSheetInf Dictionary
     # inputDict accepts activityDict
-    spreadsheet = spreadSheetDict["instance"]
+    spreadsheet = spreadSheetDict["spreadsheetObj"]
     spreadsheet = spreadsheet[spreadSheetDict["sheet"]]
     row = str(row)
 
@@ -105,7 +105,7 @@ totalInactDuration = 0
 totalWindowDuration = 0
 
 #  === Dicts 
-currentDaySS = {"instance": spreadsheet, "sheet": currentdaySheet}
+currentDaySS = {"spreadsheetObj": spreadsheet, "sheet": currentdaySheet}
 activityDict = {"processName": "", "windowName": "" , "actStart": "", "actEnd": "", "inactDuration": ""}   # Latest activity and all related info will be stored here.
 cellColumn = {"startTime": "A", "endTime": "B", "inactiveTime": "E", "programName": "F", "windowName": "G"}
 inactivityTime = {"start": 0, "end": 0 }   # Every time user gets inactive, add current time to start.
@@ -127,7 +127,6 @@ sharedVariable = shelve.open("sharedVariable", flag="r")
 while sharedVariable['runLogger'] == True:  # == True
     sharedVariable.close()
     loopCount += 1 
-    print(loopCount)
     # === Section needs more cleaning
     # Detects user Inactivity
     windll.user32.GetLastInputInfo(byref(lastInputInfo))   # Store last input time to class
@@ -208,38 +207,3 @@ with shelve.open("sharedVariable", flag="c") as sharedVariable:
 
 print("logging close")
 sys.exit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Todo list:
-
-# In progress:
-
-# Queued: some of these will not belong here
-# 11. User sheets.updateRow() instead
-# 2. Initialization - when the script is ran, save all the current spreadsheet data then clear it to make way for new data
-# 9. End of day data saving 
-# 10. Should ignoreList be in just one file?
-# 11. Put all variables in one file
-
-# DONE:
-# 7. Make the program invisible .pyw, logging... - In progress - logging DONE, headless mode not sensible atm
-# 1. add blacklist feature that will not list activities if a word is included in the window name
-#     ex. is Binance where the window name changes every second. This may cause the program to reach googles api limits
-#         another ex is when I'm watching the tech tip 🙀
-# 6. Workaround for sites that change their page name e.g. messaging sites where notifications change window name, trading where price is displayed every sec
-# 8. Handle Blacklisting and censoring in a file instead of in-program -DONE
-# 3. Better google sheets dashboard. might use google data studio.
-# 12. ignorelist and censorlist in one file
-# 13. numbers on names of py files should be removed
