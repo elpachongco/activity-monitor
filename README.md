@@ -50,15 +50,21 @@ example content for each file:
 I personally ignore trading sites since those sites change window name too frequently (quote prices as page name).
 I also ignore the character "●" for VSCODE. - This needs UTF-16 encoding.
 
+# -clear
+
 
 ##### Google api read/write limit
 
-### Todo List  
-- User sheets.updateRow() instead  
-- Initialization - when the script is ran, save all the current spreadsheet data then  clear it to make way for new data  
-- End of day data saving   
- 
+### Todo List 
+- Use sheets.updateRow() instead  
+
+
 ##### DONE:  
+- If day number = 0, clean. I implemented a -clear argument when running the app to set day number = 0
+- Make the program survive shutdowns (impossible. but it should at least continue where it left off) **DONE**. 
+- End of day data saving   
+- Either continue last session or reset
+- Initialization - when the script is ran, save all the current spreadsheet data then  clear it to make way for new data  
 - Should ignoreList be in just one file? (Ignore list & censor list merged to one file)  
 - Put all variables in one file (somewhat, shared variables now in Shelf sharedVariables)
 - Make the program headless .pyw, logging... (In progress - logging DONE, headless mode not sensible atm  )
@@ -70,3 +76,7 @@ I also ignore the character "●" for VSCODE. - This needs UTF-16 encoding.
 - Better google sheets dashboard. might use google data studio. (Is this a todo?)  
 - ignorelist and censorlist in one file  (DONE)
 - numbers on names of py files should be removed (Done, this affected importing)
+
+##### BUGS:
+- when eodARchiver is ran, activityLogger starts 1 row ahead of the intended row. **DONE**. Caused by shelf\[\'windowChangeCount\'\] += 1. Changed to shelf\[\'windowChangeCount\'\] = windowChangeCount 🤦‍♂️  
+- EOD archiver and logger stops working after a few runs. Hypothesis: Probably caused by the fact that it's set to compare "previous days" in minutes. when it records 59, it stops recognizing the 01 minute as new day. **DONE**. now uses != instead of > to compare minutes/days. Who knows what could happen when it's 01-01-2022

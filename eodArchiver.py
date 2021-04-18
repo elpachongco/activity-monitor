@@ -12,14 +12,14 @@ import shelve
 print("End of Day Archiver - Active")
 
 #Get spreadsheet data
-sharedVariable = shelve.open("sharedVariable", "r")
-spreadsheetID = sharedVariable["spreadsheetID"]  
+with shelve.open("sharedVariable") as sharedVariable:
+	spreadsheetID = sharedVariable["spreadsheetID"]  
+	currentdaySheet = sharedVariable['currentdaySheet']
+	archiveSheet = sharedVariable['archiveSheet']   
+	calculationSheet = sharedVariable['calculationSheet']
+	dayNumber = sharedVariable['dayNumber']
+
 spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Create the spreadsheet object
-currentdaySheet = sharedVariable['currentdaySheet']
-archiveSheet = sharedVariable['archiveSheet']   
-calculationSheet = sharedVariable['calculationSheet']
-dayNumber = sharedVariable['dayNumber']
-sharedVariable.close()
 
 currentdaySheet = spreadsheet[currentdaySheet]
 archiveSheet = spreadsheet[archiveSheet]
@@ -27,84 +27,53 @@ calculationSheet = spreadsheet[calculationSheet]
 
 # Get necessary data and put them to the archival sheet
 class DailyData:   
-    # this class accepts two lists:
-    # Origin, and Destination.
-    # both lists contain 1. sheet object, and 2. The location of the cell in the sheet 
+	# These variables are required. 
+	# OriginCell accepts a list, destinationCell accepts cell location info ['A3']
+	def __init__(self, originCell, destinationCell):
+		self.originCell = originCell
+		self.destinationCell = destinationCell
 
-    # Class Variables 
-    archiveSheet = ''
-    calculationSheet = ''
-    rowNumber = '' 
+	def archive(self):    # Get the data & write it 
+		originCellLoc = self.originCell
+		destinationCellLoc = self.destinationCell[0] + rowNumber
 
-    # OriginCell accepts a list, destinationCell accepts cell location info ['A3']
-    def __init__(self, originCell, destinationCell):
-        self.originCell = originCell
-        self.destinationCell = destinationCell
-        
-    def archive(self):    # Get the data & write it 
-        # sheet object
-        originCellSheet = self.calculationSheet
-        # cell location  
-        originCellLoc = self.originCell
+		# Write. 
+		if calculationSheet[originCellLoc][0] != "#":		
+			archiveSheet[destinationCellLoc] = calculationSheet[originCellLoc]	# Prevents writing #ERRORS
 
-        destinationCellSheet = self.archiveSheet  # Class variable
-        destinationCellLoc = self.destinationCell[0] + str(rowNumber)
-        
-        # title of the sheets
-        originSheetTitle = originCellSheet.title 
-        destinationSheetTitle = destinationCellSheet.title
+	def writeDate(self):
+		dateLoc = dateColumn + rowNumber
+		archiveSheet[dateLoc] = time.time()
 
-        # spreadsheet object
-        spreadsheet = originCellSheet.spreadsheet
+dateColumn = 'A'
+inputStartRow = 2  # row number to start the input
+rowNumber = str(dayNumber + inputStartRow - 1)   # row number for archive sheet
 
-        # Write. 
-        spreadsheet[destinationSheetTitle][destinationCellLoc] = spreadsheet[originSheetTitle][originCellLoc] s
+print(f"Saved to row Number: {rowNumber}") 
 
-# Data that  will be archived at the End Of Day
-inputStartRow = 2  
-rowNumber = dayNumber + inputStartRow   # row number for archive sheet
-
-start = time.time()
-
-DailyData.archiveSheet = archiveSheet
-DailyData.calculationSheet = calculationSheet
-DailyData.rowNumber = rowNumber
-
-
-# archive function takes care of the row of the destination cell
-# But it's okay to put there 
 cellLocations = [
-                # [Origin, Destination]
-                ['A3', 'A2'], # Data validity
-                ['A5', 'A3'], # Total Inactivity
-                ['A7', 'A4'], # Total Activity
-                ['A9', 'A5'], # Unique windows
-                ['A13', 'A6'] # Average time spent
-                ]
+					 # [Origin, Destination]
+					 ['A5', 'C2'], # Total Inactivity
+					 ['A7', 'D2'], # Total Activity
+					 ['A3', 'E2'], # Data validity
+					 ['A13', 'F2'],# Average time spent
+					 ['A11', 'G2'], # Unique windows
+					 ['A17', 'H2'], # Most common window name
+					 ['A19', 'I2'], # Most common process name
+					 ]
 
 for item in cellLocations:
-    archiveItem = DailyData(item[0], item[1])
-    archiveItem.archive()
+	archiveItem = DailyData(item[0], item[1])
+	archiveItem.archive()
+archiveItem.writeDate()
 
-end = time.time()
+# Clean currentday spreadsheet, remove entries then restore row 1
+columnsToClear = ['A', 'B','E','F','G']
+for index, columnLetter in enumerate(columnsToClear):
+	columnNumber = ezsh.getColumnNumberOf(columnLetter)
+	columnFirstRow = currentdaySheet[columnNumber, 1],
+	currentdaySheet.updateColumn(columnNumber, columnFirstRow)
 
-print(end - start)
-
-
-# columnsToClear = ['A', 'B','E','F','G']
-# # Clean currentday spreadsheet, remove entries then restore row 1
-# for index, columnLetter in enumerate(columnsToClear):
-#     # Get Column Number
-#     columnNumber = ezsh.getColumnNumberOf(columnLetter)
-
-#     # Get first item of that Column
-#     # Store it 
-#     columnFirstRow = currentdaySheet[columnNumber, 1],
-#     # time.sleep(3)
-#     # Clear Column
-#     currentdaySheet.updateColumn(columnNumber, columnFirstRow)
-
-# print("Daily Data cleared & restored ")
-
-# # exit
-# sys.exit()
+print("Daily Data purged & restored")
+# exit
+# sys.exit() # lol
