@@ -2,14 +2,9 @@
 # This includes
 # Clearing the daily cells
 # Refilling back the row1 (no clue if there is a better way to do this other than manually)
-# Then saving it to a cell in the archival worksheet
 
-import time
-import ezsheets as ezsh
-import sys
-import shelve
-
-print("End of Day Archiver - Active")
+import time, sys
+import ezsheets as ezsh, shelve
 
 #Get spreadsheet data
 with shelve.open("sharedVariable") as sharedVariable:
@@ -73,7 +68,3 @@ for index, columnLetter in enumerate(columnsToClear):
 	columnNumber = ezsh.getColumnNumberOf(columnLetter)
 	columnFirstRow = currentdaySheet[columnNumber, 1],
 	currentdaySheet.updateColumn(columnNumber, columnFirstRow)
-
-print("Daily Data purged & restored")
-# exit
-# sys.exit() # lol

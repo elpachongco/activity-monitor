@@ -1,24 +1,21 @@
-import ezsheets as ezsh   # googlesheets api wrapper
-import time, os, csv, logging   
-import ctypes  
+import ctypes, time, os, csv, logging, sys
 from ctypes import wintypes, windll, create_unicode_buffer, byref
 # ctypes handles some of Windows-specific functions
-import sys  # only for the sys.exit()
-import shelve
+import ezsheets as ezsh, shelve   # googlesheets api wrapper
 
-print("Activity Logger - Active")
-
+# Create the spreadsheet
 sharedVariable = shelve.open("sharedVariable", "r")
 spreadsheetID = sharedVariable["spreadsheetID"]  
 spreadsheet = ezsh.Spreadsheet(spreadsheetID)   # Create the spreadsheet object
-currentdaySheet = sharedVariable['currentdaySheet']   # name of sheet to put current day's data in
+currentdaySheet = sharedVariable['currentdaySheet'] 
 sharedVariable.close()
 
+# Get values from the sharedVariable
 with shelve.open("sharedVariable", flag="c") as sharedVariable:
 	sharedVariable['runLogger'] = True
 	windowChangeCount = sharedVariable['windowChangeCount'] 
 
-# Get ignorelist and censorlist
+# Extracts ignorelist and censorlist from keywordList.txt 
 def getKeywordList():
 	ignore = []
 	censor = []
@@ -49,9 +46,9 @@ def getKeywordList():
 # Basic logging
 logging.basicConfig(format='%(asctime)s \n %(message)s', filename='app.log', filemode= 'w', encoding='utf-8', level=logging.INFO)
 
+
 def writeToSpreadsheet(spreadSheetDict, column, row, inputDict ): 
-	# Function that writes to the spreadsheet
-	# spreadSheetDict accepts spreadSheetInf Dictionary
+	# spreadSheetDict accepts currentDaySS Dictionary
 	# inputDict accepts activityDict
 	spreadsheet = spreadSheetDict["spreadsheetObj"]
 	spreadsheet = spreadsheet[spreadSheetDict["sheet"]]
@@ -97,41 +94,37 @@ def userIsActiveCheck(timeGap):
 	elif timeGap > timeGapTolerance:
 		return False
 
-# ========== User configurable variables ============
-cellEntryStartRow = 2  # what row the data will start to be entered  
-activMinTime = .8  # min sec that must pass before action is considered.
-
-# ========== non-configurable program variables =============
-currentWindowName = ''   # temp storage for window name data.
-currentProcess = '' 
-userAwake = False   # user Awake is when the user goes from being inactive to active
-totalInactDuration = 0
-totalWindowDuration = 0
-
-#  === Dicts 
+# Stores the spreadsheetObject and the sheet Object. Todo: Fix by using only the sheet object
 currentDaySS = {"spreadsheetObj": spreadsheet, "sheet": currentdaySheet}
-activityDict = {"processName": "", "windowName": "" , "actStart": "", "actEnd": "", "inactDuration": ""}   # Latest activity and all related info will be stored here.
+
+# Storage for current activity data
+activityDict = {"processName": "", "windowName": "" , "actStart": "", "actEnd": "", "inactDuration": ""}
+
+# Columns to put the data in 
 cellColumn = {"startTime": "A", "endTime": "B", "inactiveTime": "E", "programName": "F", "windowName": "G"}
+
+# Inactivity time data storage
 inactivityTime = {"start": 0, "end": 0 }   # Every time user gets inactive, add current time to start.
 
-# === counters 
-loopCount = 0   # counts while Loops, no purpose
-# windowChangeCount = 0  # Current number of window changes, cell row location is attached to this var
+activMinTime = .8  # min sec that must pass before action is considered an action.
+cellEntryStartRow = 2  # what row the data will start to be entered  
 
-# === start preparation
 activityDict["actStart"] = time.time()   # Called when the program starts.    
 
-# The program censors the window name if a word from this text file is found.   
-# The program will not list the the whole activity if an item in the list is found.
+# Extract the ignoreList and censorList from keywordList.txt
 ignoreList, censorList = getKeywordList()
 
-# This allows the logger to be controlled by the main_app
-sharedVariable = shelve.open("sharedVariable", flag="r")
+# Variables that are used inside the while loop
+currentWindowName = ''   # temp storage for window name data.
+currentProcess = '' # Same as above but for process name
+totalInactDuration = 0 # Stores inactivity computation
+totalWindowDuration = 0 # Same as above but for window duration
+userAwake = False   # user Awake is when the user goes from being inactive to active
 
+# This allows the activity logger to be controlled by the main_app
+sharedVariable = shelve.open("sharedVariable", flag="r")
 while sharedVariable['runLogger'] == True:  # == True
 	sharedVariable.close()
-	loopCount += 1 
-	# === Section needs more cleaning
 	# Detects user Inactivity
 	windll.user32.GetLastInputInfo(byref(lastInputInfo))   # Store last input time to class
 	lastInputTime = lastInputInfo.dwTime   # Access last input time - then store to var
@@ -173,14 +166,12 @@ while sharedVariable['runLogger'] == True:  # == True
 					for item in censorList:
 						if item in activityDict["windowName"].lower():
 							activityDict["windowName"] = "[redacted]" # hehe
-							print("censor")
 							# Use this instead if you want to uncensor the first letter   
 							# activityDict["windowName"] = str(activityDict["windowName"])[0] + "[redacted]" 
 
 					ignoreActivity = False
 					for item in ignoreList:  # Only write if to spreadsheet if it doesn't contain ignore words
 						if item in activityDict["windowName"].lower():
-							print("ignore")
 							ignoreActivity = True
 
 					if ignoreActivity == False:
@@ -205,11 +196,10 @@ while sharedVariable['runLogger'] == True:  # == True
 	# After a loop, read sharedVariable again
 	sharedVariable = shelve.open("sharedVariable", flag="r")
 	
+# Else
 sharedVariable.close() # Shelf will remain open when the while loop ends
 
-# If program exits properly, reset windowChangecount
 with shelve.open("sharedVariable", flag="c") as sharedVariable:
 	sharedVariable['windowChangeCount'] = 0
 
-print("logging close")
-sys.exit()
+# sys.exit()

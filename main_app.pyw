@@ -1,12 +1,7 @@
-# This python script controls the whole program. 
-# Responsible for initiating the programs
-# The aim is for this program to run continuously
-import time, os, sys
+import time, os, sys, threading
 import shelve
-import threading
 
 programRunStart = time.localtime(time.time()).tm_mday # Returns date (day)
-# programRunStart = time.localtime(time.time()).tm_min + time.localtime(time.time()).tm_hour  # Temporary
 
 spreadsheetID = "1ImM0Ph_LP26BqJPKBauNl18mZVEvziyS0O5X9ecElMQ" 
 
@@ -19,35 +14,35 @@ calculationSheet = "Calculations"
 actLoggerFileName = "activitylogger.py"
 eodArchiverFileName = "eodArchiver.py"
 
-# This is here so that the common spreadsheet data (id & stuff) is just in one place
-# Store the data to a shelf, this will overwrite any data written on the shelf
-# Everytime this program starts, everything will get deleted.
-# The goal is for this tool to be running non stop
-
+# Establish sharedVariable which will contain data for sharing to the other applications
 with shelve.open("sharedVariable", flag="c") as sharedVariable:
+	# Store the spreadsheet information so that it's just in one place  
 	sharedVariable['spreadsheetID'] = spreadsheetID
 	sharedVariable['currentdaySheet'] = currentdaySheet
 	sharedVariable['archiveSheet'] = archiveSheet
 	sharedVariable['calculationSheet'] = calculationSheet
+	
+	# Handles the program's ability to continue stuff after shutdowns
 	if 'dayNumber' not in sharedVariable:
 		sharedVariable['dayNumber'] = 0 
 	if 'windowChangeCount' not in sharedVariable:
 		sharedVariable['windowChangeCount'] = 0
 
+	# Handles the -clear argument
 	if len(sys.argv) > 1:
 		if sys.argv[1].upper() == '-CLEAR':
 			sharedVariable['dayNumber'] = 0 
 			sharedVariable['windowChangeCount'] = 0
-	
+
+
 	dayNumber = sharedVariable['dayNumber']
-	#  sharedVariable['dayNumber'] = 
-	sharedVariable['runLogger'] = True    
 
 def startProgram(pyFileName):
+	# Takes in file names of python programs
 	os.system('py ' + str(pyFileName))   # not sure if this would work on other windows systems
 	print("start program:" + str(pyFileName) + " - done")
 
-# Start logger in a separate thread
+# Necessary for  the program to continue running even when activity logger is running
 threadObj = threading.Thread(target= startProgram, args=[actLoggerFileName])
 threadObj.start()
 
@@ -75,6 +70,6 @@ while True:
 		errorQuestion = input("Continue running or exit? \nExit - a | Continue running - b\n")
 		if errorQuestion.upper() == "A":
 			sys.exit()
-		if errorQuestion.upper() == "B":
+		elif errorQuestion.upper() == "B":
 			continue  
 		sys.exit()
