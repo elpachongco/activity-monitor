@@ -64,6 +64,12 @@ I personally ignore trading sites since those sites change window name too frequ
 
 This is pretty simple: Make a windows shortcut of the main-app (right click -> send to -> desktop -> create shortcut), then paste the shortcut (.ink file) to %appdata%\Microsoft\Windows\Start Menu\Programs\Startup (This can easily be accessed by pressing winKey + r then entering "shell:startup").
 
+In my case, I had to create a .bat file so that I can run it with pipenv.
+
+   startuprun.bat:
+
+      pipenv shell && py main-app.pyw
+
 ----NEEDS TESTING  
 
 #### Clearing the main-app

@@ -19,7 +19,7 @@ with shelve.open("sharedVariable", flag="c") as sharedVariable:
 def getKeywordList():
 	ignore = []
 	censor = []
-	with open("keywordList.txt") as keywordList:
+	with open("keywordList.txt", "a") as keywordList:
 		keywordList = keywordList.readlines()
 	isIgnore = False
 	isCensor = False
