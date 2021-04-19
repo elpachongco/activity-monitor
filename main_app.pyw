@@ -5,7 +5,7 @@ import time, os, sys
 import shelve
 import threading
 
-programRunStart = time.localtime(time.time()).tm_min # Returns date (day)
+programRunStart = time.localtime(time.time()).tm_mday # Returns date (day)
 # programRunStart = time.localtime(time.time()).tm_min + time.localtime(time.time()).tm_hour  # Temporary
 
 spreadsheetID = "1ImM0Ph_LP26BqJPKBauNl18mZVEvziyS0O5X9ecElMQ" 
@@ -55,7 +55,7 @@ previousDay = programRunStart
 while True:
 	try:
 		# Get current date (day)
-		thisDay = time.localtime(time.time()).tm_min
+		thisDay = time.localtime(time.time()).tm_mday
 
 		if thisDay != previousDay:  # Crude. Hope this doesn't mess things up.
 			with shelve.open("sharedVariable", flag="c") as sharedVariable:
@@ -69,10 +69,6 @@ while True:
 			threadObj.start()
 
 			previousDay = thisDay
-
-		# elif thisDay == previousDay
-		print(previousDay)
-		print(thisDay)
 
 	except:
 		# Either continue the loop or exit the program

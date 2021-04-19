@@ -205,11 +205,11 @@ while sharedVariable['runLogger'] == True:  # == True
 	# After a loop, read sharedVariable again
 	sharedVariable = shelve.open("sharedVariable", flag="r")
 	
-sharedVariable['windowChangeCount'] = 0
 sharedVariable.close() # Shelf will remain open when the while loop ends
 
 # If program exits properly, reset windowChangecount
-# with shelve.open("sharedVariable", flag="c") as sharedVariable:
+with shelve.open("sharedVariable", flag="c") as sharedVariable:
+	sharedVariable['windowChangeCount'] = 0
 
 print("logging close")
 sys.exit()

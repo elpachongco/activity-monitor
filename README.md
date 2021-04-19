@@ -3,7 +3,9 @@
 ### Summary
 This python program logs user activity based on the window name that the user is currently working on. Inactivity is also monitored for each program based on input activity. The data is then forwarded to a google sheets worksheet where it can be easily seen and analyzed.
 
-Windows only *for now*. Makes use of Windows built-in functions.
+Windows only *for now?*. Makes use of Windows built-in functions.
+
+The goal is to make this program be as invisible as possible.
 ### Setup
 
 ##### 1. Requirements
@@ -14,11 +16,11 @@ Windows only *for now*. Makes use of Windows built-in functions.
 - Duplicate google sheets template from mine
 - Get sheet link, worksheets
 
-##### 2. Setting up Google 
+##### 2. Setting up Google API 
 - Enabling API Access for Google Docs and Google Sheets
 - pickle files
 - renaming to credentials.json
-- Spreadsheet design [credit]
+- Spreadsheet design [credit]https://www.reddit.com/r/UKPersonalFinance/comments/k8pb1q/simple_google_sheets_financial_dashboard/
 - 
 ##### 3. Configure
 - See user configurable variables
@@ -57,7 +59,9 @@ I also ignore the character "●" for VSCODE. - This needs UTF-16 encoding.
 
 ### Todo List 
 - Use sheets.updateRow() instead  
-
+- Logging system needs fixing
+- Headless mode? .pyw? - Not sensible?
+- Setting application to run at startup (might include making a .bat file), ; 2. Pasting it in %appdata%\Microsoft\Windows\Start Menu\Programs\Startup or %programdata%\Microsoft\Windows\Start Menu\Programs\Startup for all users.
 
 ##### DONE:  
 - If day number = 0, clean. I implemented a -clear argument when running the app to set day number = 0
