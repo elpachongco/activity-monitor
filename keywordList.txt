@@ -1,0 +1,8 @@
+# Put corresponding keywords under the #ignore and #censor comments
+# Separate keywords by line
+# Spaces before and after the keywords will be ignored
+
+#ignore
+
+
+#censor

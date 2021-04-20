@@ -4,8 +4,10 @@ token-sheets.pickle
 token-drive.pickle
 credentials-sheets.json
 
+# Make sure to enable this if your list contains sensitive info
 # Contains your ignore list and censor list
-keywordList.txt
+# keywordList.txt
+
 
 # logs, this would include your 
 app.log

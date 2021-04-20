@@ -1,0 +1,1 @@
+pipenv run py main_app.pyw

@@ -62,15 +62,13 @@ I personally ignore trading sites since those sites change window name too frequ
 
 #### Running the program on startups automatically
 
-This is pretty simple: Make a windows shortcut of the main-app (right click -> send to -> desktop -> create shortcut), then paste the shortcut (.ink file) to %appdata%\Microsoft\Windows\Start Menu\Programs\Startup (This can easily be accessed by pressing winKey + r then entering "shell:startup").
+This is pretty straightforward: Make a windows shortcut of the main-app (right click -> send to -> desktop -> create shortcut), then paste that shortcut (which will be on Desktop) to %appdata%\Microsoft\Windows\Start Menu\Programs\Startup (This can easily be accessed by pressing winKey + r then entering "shell:startup").
 
-In my case, I had to create a .bat file so that I can run it with pipenv.
+In my case, I had to create a .bat file so that I can run it with pipenv where ezsheets is installed.
 
    startuprun.bat:
 
-      pipenv shell && py main-app.pyw
-
-----NEEDS TESTING  
+      pipenv run python main-app.pyw
 
 #### Clearing the main-app
 
@@ -80,16 +78,27 @@ Normally, the application keeps track of what row the latest data went in. This 
 
 This will clear the row data at the start of the program.
 
-#### Google api read/write limit
+#### Something not working?
+
+If the application is not working, it might be caused by one or more of these:
+
+- ezsheets is not installed
+- Google credentials files are missing/incomplete
+- python/py inconsistency. (needs fixing, but for now might want to change "py" to "python" in main_app -> startProgram function)
 
 ### Todo List
 
 - Use sheets.updateRow() instead  
 - Logging system needs fixing
-- Headless mode? .pyw? - Not sensible?
-- Setting application to run at startup (might include making a .bat file), ; 2. Pasting it in %appdata%\Microsoft\Windows\Start Menu\Programs\Startup or %programdata%\Microsoft\Windows\Start Menu\Programs\Startup for all users. Also winKey + R, "shell:startup"
+- Just learned that using os.system() to run python programs is horrible...
 
 #### BUGS
 
+- App is using too much CPU! Probably needs to use updateRow() and write to list instead. Importing activity logger as a function or something like that should help as well. UPDATE: It's outrageous! 1/4th of cpu belongs to python now 😭
+- App doesn't survive hybernation (probably because of the except statement in main-app). Needs a more elegant way to handle errors.
 - when eodARchiver is ran, activityLogger starts 1 row ahead of the intended row. **DONE**. Caused by shelf\[\'windowChangeCount\'\] += 1. Changed to shelf\[\'windowChangeCount\'\] = windowChangeCount 🤦‍♂️  
 - EOD archiver and logger stops working after a few runs. Hypothesis: Probably caused by the fact that it's set to compare "previous days" in minutes (minutes for testing purposes). When it records 59, it stops recognizing the 01 minute as new day. **DONE**. now uses != instead of > to compare minutes/days. Who knows what could happen when it's 01-01-2022.
+
+##### Contributing
+
+I've never experienced this but if you somehow saw this repo, tried the program, saw the mess, and now want to contribute, just make sure to enable keywordList.txt in gitignore.

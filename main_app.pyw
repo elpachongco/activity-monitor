@@ -1,7 +1,7 @@
 import time, os, sys, threading
 import shelve
 
-programRunStart = time.localtime(time.time()).tm_mday # Returns date (day)
+# programRunStart = time.localtime(time.time()).tm_mday # Returns date (day)
 
 spreadsheetID = "1ImM0Ph_LP26BqJPKBauNl18mZVEvziyS0O5X9ecElMQ" 
 
@@ -27,6 +27,8 @@ with shelve.open("sharedVariable", flag="c") as sharedVariable:
 		sharedVariable['dayNumber'] = 0 
 	if 'windowChangeCount' not in sharedVariable:
 		sharedVariable['windowChangeCount'] = 0
+	if 'savedDay' not in sharedVariable:
+		sharedVariable['savedDay'] = time.localtime(time.time()).tm_mday
 
 	# Handles the -clear argument
 	if len(sys.argv) > 1:
@@ -34,8 +36,8 @@ with shelve.open("sharedVariable", flag="c") as sharedVariable:
 			sharedVariable['dayNumber'] = 0 
 			sharedVariable['windowChangeCount'] = 0
 
-
 	dayNumber = sharedVariable['dayNumber']
+	previousDay = sharedVariable['savedDay']
 
 def startProgram(pyFileName):
 	# Takes in file names of python programs
@@ -46,7 +48,6 @@ def startProgram(pyFileName):
 threadObj = threading.Thread(target= startProgram, args=[actLoggerFileName])
 threadObj.start()
 
-previousDay = programRunStart 
 while True:
 	try:
 		# Get current date (day)
@@ -57,6 +58,7 @@ while True:
 				sharedVariable['runLogger'] = False
 				sharedVariable['windowChangeCount'] = 0
 				sharedVariable['dayNumber'] += 1
+				sharedVariable['savedDay'] = thisDay
 
 			startProgram(eodArchiverFileName)
 
@@ -66,10 +68,6 @@ while True:
 			previousDay = thisDay
 
 	except:
-		# Either continue the loop or exit the program
-		errorQuestion = input("Continue running or exit? \nExit - a | Continue running - b\n")
-		if errorQuestion.upper() == "A":
-			sys.exit()
-		elif errorQuestion.upper() == "B":
-			continue  
-		sys.exit()
+		# This will be annoying but I was really planning on running the program in headless mode anyway
+		# Probably will only be turned off using task manager 
+		continue  
