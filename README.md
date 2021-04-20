@@ -19,6 +19,9 @@ The goal is to make this program be as invisible as possible.
 - Duplicate google sheets template from mine
 - Get sheet link, worksheets
 
+[api key setup](https://console.developers.google.com/apis/library/sheets.googleapis.com/)
+[api key setup](https://console.developers.google.com/apis/library/drive.googleapis.com/)
+
 #### 2. Setting up Google Accounts and getting API keys
 
 - Enabling API Access for Google Docs and Google Sheets
