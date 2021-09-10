@@ -1,5 +1,8 @@
 import time, threading, logging
-from config.keywordList import IGNORES, CENSORS
+from config.keywords import IGNORES, CENSORS
+
+# TODO:
+
 # from config.config import 
 
 from src.uploader import upload 
