@@ -1,6 +1,5 @@
 # This program is responsible for handling end of days.
-# This includes
-# Clearing the daily cells
+# This includes clearing the daily cells,
 # Refilling back the row1 (no clue if there is a better way to do this other than manually)
 
 import time, sys

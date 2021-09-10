@@ -1,7 +1,5 @@
 # 🐍⌚ Python Activity Monitor
 
-## Summary
-
 This python program logs user activity based on the window name that the user is currently working on. Inactivity is also monitored for each program based on input activity. The data is then forwarded to a google sheets worksheet where it can be easily seen and analyzed.
 
 Windows only *for now?*. Makes use of Windows built-in functions.
@@ -19,13 +17,11 @@ The goal is to make this program be as invisible as possible.
 - Duplicate google sheets template from mine
 - Get sheet link, worksheets
 
-[api key setup](https://console.developers.google.com/apis/library/sheets.googleapis.com/)
-[api key setup](https://console.developers.google.com/apis/library/drive.googleapis.com/)
-
 #### 2. Setting up Google Accounts and getting API keys
 
 - Enabling API Access for Google Docs and Google Sheets
 - pickle files
+- [Sheets api key setup](https://console.developers.google.com/apis/library/sheets.googleapis.com/), [Drive api key setup](https://console.developers.google.com/apis/library/drive.googleapis.com/)
 - renaming to credentials.json
 - Spreadsheet design [credit](https://www.reddit.com/r/UKPersonalFinance/comments/k8pb1q/simple_google_sheets_financial_dashboard/)
 
@@ -89,19 +85,24 @@ If the application is not working, it might be caused by one or more of these:
 - Google credentials files are missing/incomplete
 - python/py inconsistency. (needs fixing, but for now might want to change "py" to "python" in main_app -> startProgram function)
 
-### Todo List
-
-- Use sheets.updateRow() instead  
-- Logging system needs fixing
-- Just learned that using os.system() to run python programs is horrible...
+### TODO 
+- Make it less resource intensive 
+      - Introduce delay / sampling time for the activity logger to prevent unnecesary looping
+- Replace google sheets with a proper database. Use google sheets only as a backup
+      idea: dashboard should fetch local data from local db and data from google sheets
+      - also make a better db design than the google sheets ver
+      - import sqlite3?
+- better project file structure
+      Every file is mixed up and there's no description of what each file does
+      - `docs` directory, `src`, 
+- Local dashboard
+- Code cleanup 
+      - for reliability (this program might run 24/7)
+      - No more using a shared variable. 
+      - Make it more modular for upgradability and ease of porting to other OS
+- Create a configuration file
 
 #### BUGS
 
-- App is using too much CPU! Probably needs to use updateRow() and write to list instead. Importing activity logger as a function or something like that should help as well. UPDATE: It's outrageous! 1/4th of cpu belongs to python now 😭
-- App doesn't survive hybernation (probably because of the except statement in main-app). Needs a more elegant way to handle errors.
-- when eodARchiver is ran, activityLogger starts 1 row ahead of the intended row. **DONE**. Caused by shelf\[\'windowChangeCount\'\] += 1. Changed to shelf\[\'windowChangeCount\'\] = windowChangeCount 🤦‍♂️  
-- EOD archiver and logger stops working after a few runs. Hypothesis: Probably caused by the fact that it's set to compare "previous days" in minutes (minutes for testing purposes). When it records 59, it stops recognizing the 01 minute as new day. **DONE**. now uses != instead of > to compare minutes/days. Who knows what could happen when it's 01-01-2022.
 
-##### Contributing
 
-I've never experienced this but if you somehow saw this repo, tried the program, saw the mess, and now want to contribute, just make sure to enable keywordList.txt in gitignore.

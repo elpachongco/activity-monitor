@@ -1,18 +1,8 @@
-# These are the required keys and credentials from google
-# How to get it: https://github.com/asweigart/ezsheets#quickstart-guide
-token-sheets.pickle
-token-drive.pickle
-credentials-sheets.json
-
 # Make sure to enable this if your list contains sensitive info
 # Contains your ignore list and censor list
 # keywordList.txt
 
 
 # logs, this would include your 
-app.log
 
 # Shelf file
-sharedVariable.bak
-sharedVariable.dat
-sharedVariable.dir
