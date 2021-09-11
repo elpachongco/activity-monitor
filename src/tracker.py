@@ -1,16 +1,16 @@
+# NOTE -- plan
+# When called, get window name, start time, track inactivities, 
+# then return when user switches window 
+
 import ctypes, time, os, csv, logging, sys
 from ctypes import wintypes, windll, create_unicode_buffer, byref
 # ctypes handles some of Windows-specific functions
 
-# TODO
+# TODO -- 
 # Currently, this program tries to 1. Get ignore keywords, 2. See user activity, 
 # and 3. upload to a DB (sheets). 
 # This has to be removed. functions should be separated into different 
 # programs that do its own purpose 
-
-# NOTE -- plan
-# When called, get window name, start time, track inactivities, 
-# then return when user switches window 
 
 # TODO  
 # implement sampling interval for the while loop
@@ -26,8 +26,6 @@ class LASTINPUTINFO(ctypes.Structure):
 	_fields_ = [
 		("cbSize", ctypes.c_ulong),
 		("dwTime", ctypes.c_ulong) ]
-lastInputInfo = LASTINPUTINFO()  # Instantiate class
-lastInputInfo.cbSize = ctypes.sizeof(LASTINPUTINFO)   # set size of class - microsoft requirement
 
 def getActivityInfo():
 	# Get current active/foreground window. 
@@ -78,87 +76,95 @@ activityDict["actStart"] = time.time()   # Called when the program starts.
 # Extract the ignoreList and censorList from keywordList.txt
 ignoreList, censorList = getKeywordList()
 
-# Variables that are used inside the while loop
-currentWindowName = ''   # temp storage for window name data.
-currentProcess = '' # Same as above but for process name
-totalInactDuration = 0 # Stores inactivity computation
-totalWindowDuration = 0 # Same as above but for window duration
-userAwake = False   # user Awake is when the user goes from being inactive to active
 
 # This allows the activity logger to be controlled by the main_app
-while True:  
-	# Detects user Inactivity
-	windll.user32.GetLastInputInfo(byref(lastInputInfo))   # Store last input time to class
-	lastInputTime = lastInputInfo.dwTime   # Access last input time - then store to var
-	tickCount = windll.kernel32.GetTickCount()   # Get Current time in ms, for comparison against last input time
-	userIsActive = userIsActive(tickCount-lastInputTime)  
-	currentWindowName, currentProcess = getActivityInfo()
 
-	# Logs time of user inactivity 
-	if not userIsActive:
-		if userAwake == False:
-			inactivityTime["start"] += time.time()
-			userAwake = True
-	elif userIsActive:
-		if userAwake == True:   # 
-			inactivityTime["end"] += time.time()  # when user awakes, inactivity ends
-			userAwake = False  # User should first be inactive before awakening again
+class Tracker():
+	# Get foreground window, track inactivity. Return when window changes
+	
+	def __init__():
+		self.lastInputInfo = LASTINPUTINFO()  
+		self.lastInputInfo.cbSize = ctypes.sizeof(LASTINPUTINFO)   
+	
+	def track(): 
 
-	# When the program is ran for the first time, windowName is = ""
-	if activityDict["windowName"] != '':    
-		# Window change
-		if currentWindowName != activityDict["windowName"]: 
+		# Variables that are used inside the while loop
+		currentWindowName = ''   # temp storage for window name data.
+		currentProcess = '' # Same as above but for process name
+		totalInactDuration = 0 # Stores inactivity computation
+		totalWindowDuration = 0 # Same as above but for window duration
+		userAwake = False   # user Awake is when the user goes from being inactive to active
 
-			# Handles the missing end time when the user is inactive and a change of window occurs (e.g. waiting for a webpage to load)
-			if userAwake == True:
-					inactivityTime["end"] += time.time()
-					userAwake = False 
+		while True:  
 
-			activityDict["actEnd"] = time.time()                    
-			totalWindowDuration = activityDict["actEnd"] - activityDict["actStart"]            
+			# Detects user Inactivity
+			windll.user32.GetLastInputInfo(byref(self.lastInputInfo))   # Store last input time to class
+			lastInputTime = self.lastInputInfo.dwTime   # Access last input time - then store to var
+			tickCount = windll.kernel32.GetTickCount()   # Get Current time in ms, for comparison against last input time
+			userIsActive = userIsActive(tickCount-lastInputTime)  
+			currentWindowName, currentProcess = getActivityInfo()
 
-			# Don't execute if the window change is less than activMinTime 
-			if totalWindowDuration  >= ACTIVMINTIME: 
-					cellNumber = str(windowChangeCount + ENTRYSTARTROW)
+			# Logs time of user inactivity 
+			if not userIsActive:
+				if userAwake == False:
+					inactivityTime["start"] += time.time()
+					userAwake = True
+			elif userIsActive:
+				if userAwake == True:   # 
+					inactivityTime["end"] += time.time()  # when user awakes, inactivity ends
+					userAwake = False  # User should first be inactive before awakening again
 
-					totalInactDuration = str(inactivityTime["end"] - inactivityTime["start"])
-					activityDict["inactDuration"] = totalInactDuration
+			# When the program is ran for the first time, windowName is = ""
+			if activityDict["windowName"] != '':    
+				# Window change
+				if currentWindowName != activityDict["windowName"]: 
 
-					# Censoring, not so elegant solution. Feels like there should be a better way to this...
-					for item in censorList:
-						if item in activityDict["windowName"].lower():
-							activityDict["windowName"] = "[redacted]" # hehe
-							# Use this instead if you want to uncensor the first letter   
-							# activityDict["windowName"] = str(activityDict["windowName"])[0] + "[redacted]" 
+					# Handles the missing end time when the user is inactive and a change of window occurs (e.g. waiting for a webpage to load)
+					if userAwake == True:
+							inactivityTime["end"] += time.time()
+							userAwake = False 
 
-					ignoreActivity = False
-					for item in ignoreList:  # Only write if to spreadsheet if it doesn't contain ignore words
-						if item in activityDict["windowName"].lower():
-							ignoreActivity = True
+					activityDict["actEnd"] = time.time()                    
+					totalWindowDuration = activityDict["actEnd"] - activityDict["actStart"]            
 
-					if ignoreActivity == False:
-						# Todo: make this a list and use ezsheets.updateRow() instead, this might be why it's too cpu intensive 
-						writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + ENTRYSTARTROW , activityDict)
-						windowChangeCount += 1   
+					# Don't execute if the window change is less than activMinTime 
+					if totalWindowDuration  >= ACTIVMINTIME: 
+							cellNumber = str(windowChangeCount + ENTRYSTARTROW)
 
-						# Save this so that it can be referenced when program shuts down unexpectedly
-						with shelve.open("sharedVariable", flag="c") as sharedVariable:
-							sharedVariable['windowChangeCount'] = windowChangeCount
+							totalInactDuration = str(inactivityTime["end"] - inactivityTime["start"])
+							activityDict["inactDuration"] = totalInactDuration
 
-						# Logging purpose. Disable this if you don't want the program to put your activity on the logs
-						#logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
-					
-					activityDict["actStart"] = time.time()  # Set a new start time for the new activity
-									
-					inactivityTime["start"] = 0     
-					inactivityTime["end"] = 0
+							# Censoring, not so elegant solution. Feels like there should be a better way to this...
+							for item in censorList:
+								if item in activityDict["windowName"].lower():
+									activityDict["windowName"] = "[redacted]" # hehe
+									# Use this instead if you want to uncensor the first letter   
+									# activityDict["windowName"] = str(activityDict["windowName"])[0] + "[redacted]" 
 
-	activityDict["windowName"] = currentWindowName
-	activityDict["processName"] = currentProcess   
+							ignoreActivity = False
+							for item in ignoreList:  # Only write if to spreadsheet if it doesn't contain ignore words
+								if item in activityDict["windowName"].lower():
+									ignoreActivity = True
 
-	# After a loop, read sharedVariable again
-	sharedVariable = shelve.open("sharedVariable", flag="r")
+							if ignoreActivity == False:
+								# Todo: make this a list and use ezsheets.updateRow() instead, this might be why it's too cpu intensive 
+								writeToSpreadsheet(currentDaySS, cellColumn , windowChangeCount + ENTRYSTARTROW , activityDict)
+								windowChangeCount += 1   
 
-#def track():
-#	# Get foreground window, track inactivity. Return when window changes
-#	pass
+								# Save this so that it can be referenced when program shuts down unexpectedly
+								with shelve.open("sharedVariable", flag="c") as sharedVariable:
+									sharedVariable['windowChangeCount'] = windowChangeCount
+
+								# Logging purpose. Disable this if you don't want the program to put your activity on the logs
+								#logging.info("FStart: " + str(inactivityTime["start"])  +"\nFEnd: " + str(inactivityTime["end"]) + f"\ntotal Inactivity: {totalInactDuration}" + "\n" + '='*12 + "\n")
+							
+							activityDict["actStart"] = time.time()  # Set a new start time for the new activity
+											
+							inactivityTime["start"] = 0     
+							inactivityTime["end"] = 0
+
+			activityDict["windowName"] = currentWindowName
+			activityDict["processName"] = currentProcess   
+
+			# After a loop, read sharedVariable again
+			sharedVariable = shelve.open("sharedVariable", flag="r")

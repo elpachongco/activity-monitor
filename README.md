@@ -1,6 +1,6 @@
-# 🐍⌚ Python Activity Monitor
+# 🐍⌚ Python Activity Tracker
 
-This python program logs user activity based on the window name that the user is currently working on. Inactivity is also monitored for each program based on input activity. The data is then forwarded to a google sheets worksheet where it can be easily seen and analyzed.
+This program logs user activity based on the window name that the user is currently working on. Inactivity is also monitored for each program based on input activity. The data is then forwarded to a google sheets worksheet where it can be easily seen and analyzed.
 
 Windows only *for now?*. Makes use of Windows built-in functions.
 
@@ -103,6 +103,3 @@ If the application is not working, it might be caused by one or more of these:
 - Create a configuration file
 
 #### BUGS
-
-
-

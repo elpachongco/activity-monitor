@@ -6,3 +6,5 @@
 # logs, this would include your 
 
 # Shelf file
+
+*.db
