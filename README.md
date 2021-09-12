@@ -88,6 +88,7 @@ If the application is not working, it might be caused by one or more of these:
 ### TODO 
 - Make it less resource intensive 
       - Introduce delay / sampling time for the activity logger to prevent unnecesary looping
+      - The windows API used to fetch inactivity / window name is too heavy, 
 - Replace google sheets with a proper database. Use google sheets only as a backup
       idea: dashboard should fetch local data from local db and data from google sheets
       - also make a better db design than the google sheets ver
@@ -101,5 +102,7 @@ If the application is not working, it might be caused by one or more of these:
       - No more using a shared variable. 
       - Make it more modular for upgradability and ease of porting to other OS
 - Create a configuration file
+- Better portability for windows. Currently, the process name lookup involves
+using a command line tool which I am not sure exists on older platforms. 
 
 #### BUGS
