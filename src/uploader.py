@@ -1,13 +1,6 @@
 import sqlite3
-# from os import system
 
 # This program accepts info about the activity then uploads it to an sqlite3 db
-
-# -- DB DESIGN --
-# TABLE: activity_data
-# COLUMNS: Index, Start Time, End Time, Inactivity, 
-# Program Name, Window Title, Time Spent
-
 
 class Uploader():
 
@@ -16,7 +9,7 @@ class Uploader():
 
     # Min amount of items to upload. If this number hasn't      
     # been reached, upload() saves the item into a list
-    # (class variable)
+    # (to be implemented).
     minUpload = 1
 
     def __init__(self):
