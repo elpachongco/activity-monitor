@@ -9,10 +9,11 @@ uploaded to an sqlite database.
 ### Requirements
 
 - Windows OS
-- Python 3.7
+- Python >= 3.7
 
-#### Running the program on startups automatically
+### Running the program on startups automatically
 
+#### Windows
 This is pretty straightforward: Make a windows shortcut of the main-app (right
 click -> send to -> desktop -> create shortcut), then paste that shortcut (which
 will be on Desktop) to %appdata%\Microsoft\Windows\Start Menu\Programs\Startup
@@ -25,18 +26,6 @@ ezsheets is installed.
 startuprun.bat:
 
       pipenv run python main-app.pyw
-
-
-### TODO 
-- Local dashboard
-- Code cleanup 
- - for reliability (this program might run 24/7)
- - Create a configuration file
- - Better portability for windows. Currently, the process
-name lookup involves using a command line tool which I am not sure exists on
-older platforms. 
-- Documentation
-- Tests
 
 ## BUGS
 
@@ -67,3 +56,14 @@ None known yet. Program hasn't been tested extensively.
       tracker.py
       uploader.py
 ```
+
+## TODO 
+- Local dashboard
+- Code cleanup 
+ - for reliability (this program might run 24/7)
+ - Create a configuration file
+ - Better portability for windows. Currently, the process name lookup involves
+      using a command line tool which I am not sure exists on older platforms. 
+- Documentation
+- Tests
+- Port to Linux

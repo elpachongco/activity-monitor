@@ -67,3 +67,12 @@ the current foreground window changes name.
 
 
 ## uploader
+
+`uploader.py` handles the uploading of data to the sqlite db. 
+
+Upon initialization, it connects to the database file `activity.db`. If the file 
+doesn't exist, sqlite3 creates it. `Uploader()` checks `activity.db` if it 
+contains the necessary table and columns. If not, `Uploader()` creates it.
+
+It stays connected as long as `main.py` is running. It uploads and commits 
+changes whenever the `Uploader.upload()` called.
