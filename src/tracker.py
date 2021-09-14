@@ -100,13 +100,15 @@ class Tracker():
 		currentProcess = '' 
 		tWindowDuration = 0 
 		userFromSleep = False   # User returned from inactivity
+
 		# Every time user gets inactive, add current time to start.
+		# if inactivity ends, add current time to end.
 		inactiveDur = {"start": 0, "end": 0 }   
 
 		self.activity['actStart'] = datetime.now()
 
 		while True:  
-		# Instead of a while True, while currentWindow \
+		# Instead of a while True, while currentWindow 
 		# == self.activity["windowName"] might be possible
 
 			time.sleep(self.WHILEINTERVAL)
@@ -157,13 +159,28 @@ class Tracker():
 			self.activity["windowName"] = currentWindow
 			self.activity["processName"] = currentProcess   
 
+
+		# Converts the listed key's values into
+		# iso8601 time format specified by sqlite3
+		self.toIso8601(self.activity, ["actStart", "actEnd"])
+
 		# Convert dict values to string 
-		# As required by main.py
-		self.activity["actStart"] = self.activity["actStart"]\
-			.isoformat(sep=' ', timespec='milliseconds')
-		self.activity["actEnd"] = self.activity["actEnd"]\
-			.isoformat(sep=' ', timespec='milliseconds')
-		for key in self.activity:
-			self.activity[key] = str(self.activity[key])
+		self.dictValToStr(self.activity)
 
 		return self.activity
+
+	def toIso8601( self, activityDict, keys):
+		# ARGS: Dictionary, Keys of values to be converted
+		# Converts the values of the keys from dictionary
+		# into format specified by sqlite3 iso861
+		for key in keys:
+			activityDict[key] = activityDict[key]\
+				.isoformat(sep=' ', timespec='milliseconds')
+
+	def dictValToStr(self, activityDict):
+		# ARGS: dictionary to convert
+		# Converts all values for all keys to string.
+		for key in activityDict:
+			activityDict[key] = str(activityDict[key])
+
+

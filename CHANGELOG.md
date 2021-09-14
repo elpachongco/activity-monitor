@@ -1,9 +1,8 @@
-Changelog
-=========
+# Changelog
 
 ## 2021-09-10
 
-This version brings significat changes. The two main goals for this update are
+This version brings significant changes. My two goals for this update are
 to make the program less resource intensive, and to prepare for porting the
 program into other operating systems.
 
@@ -25,9 +24,6 @@ program into other operating systems.
         data. One can create a dashboard by just accessing the sqlite db.
         
 - Better file structure 
-
-    - New directories and file names 
-    - see `./docs/structure.md` for more info
 
 - More modularity. 
 

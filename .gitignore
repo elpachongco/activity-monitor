@@ -1,10 +1,3 @@
-# Make sure to enable this if your list contains sensitive info
-# Contains your ignore list and censor list
-# keywordList.txt
-
-
-# logs, this would include your 
-
-# Shelf file
-
 *.db
+__pycache__
+__pycache__/*
