@@ -9,7 +9,7 @@ uploaded to an sqlite database.
 ### Requirements
 
 - Windows OS
-- Python >= 3.7
+- Python (tested on 3.7 & 3.9)
 
 ### Running the program on startups automatically
 

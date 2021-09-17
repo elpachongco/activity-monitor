@@ -1,4 +1,5 @@
 {
     "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": false,
+    "python.pythonPath": "C:\\Users\\liinz\\.virtualenvs\\7activityMon-SOnGXxil\\Scripts\\python.exe"
 }

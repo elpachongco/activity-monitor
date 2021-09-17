@@ -40,15 +40,9 @@ class Uploader():
 
         self.sqlConnection.execute("""
 
-            INSERT INTO {tn} VALUES ('{actStart}', '{actEnd}',  {inactDuration},
-            '{windowName}', '{processName}')
+            INSERT INTO {tn} VALUES (:actStart, :actEnd,  :inactDuration,
+            :windowName, :processName)
 
-            """.format(
-                tn=self.tableName,
-
-                # Unpacks the dictionary. Makes keys behave like 
-                # variables in the format string.
-                **activityDict
-        ))
+            """.format(tn=self.tableName), activityDict)
 
         self.sqlConnection.commit()
