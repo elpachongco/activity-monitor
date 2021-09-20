@@ -1,5 +1,7 @@
 from flask import Flask, request, Response, make_response
 import sqlite3 
+import os
+
 app = Flask(__name__)
 
 # This program receives GET requests from the frontend, queries the database
@@ -11,7 +13,9 @@ app = Flask(__name__)
 # Also set flask to dev mode (powershell)
 # $env:FLASK_ENV="development"
 
-dbPath = '../../activity.db'
+# Path to sqlite database (Set as environment variable by main.py)
+dbPath = os.environ["ACTIVITY_DB"] 
+
 db = sqlite3.connect(dbPath, check_same_thread=False)
 db.row_factory = sqlite3.Row
 

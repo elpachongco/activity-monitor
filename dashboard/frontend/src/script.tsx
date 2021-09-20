@@ -4,6 +4,8 @@ interface ActivityObject {
 }
 type Activity = ActivityObject[]
 
+
+
 function columnSum(activity: Activity, key: string): number {
 	// Get SUM() of a column
 	// given the column name as a key (string)
@@ -43,5 +45,5 @@ function getTotalActivity(activity: Activity): number {
 	console.log(`total inactivity: ${totalInactivity}`)
 	console.log(`ratio: ${totalActivity / totalInactivity}`)
 	console.log(activity)
-	document.body.textContent = <div/>
+	// document.body.textContent = <div/>
 })();

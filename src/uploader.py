@@ -1,10 +1,12 @@
 import sqlite3
+from os import environ
 
 # This program accepts info about the activity then uploads it to an sqlite3 db
 
 class Uploader():
 
-    dbPath = "./activity.db"
+    # Get db location from envornment variable ACTIVITY_DB
+    dbPath = environ["ACTIVITY_DB"]
     tableName = "activity_data"
 
     # Min amount of items to upload. If this number hasn't      

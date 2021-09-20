@@ -42,5 +42,5 @@ function getTotalActivity(activity) {
     console.log(`total inactivity: ${totalInactivity}`);
     console.log(`ratio: ${totalActivity / totalInactivity}`);
     console.log(activity);
-    document.body.textContent = React.createElement("div", null);
+    // document.body.textContent = <div/>
 }))();
