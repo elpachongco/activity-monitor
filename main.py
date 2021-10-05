@@ -2,14 +2,12 @@ from src.uploader import Uploader
 from src.tracker import Tracker
 
 from config.keywords import IGNORES, CENSORS
-from os import environ
+
+from os import environ 
 from pathlib import Path
 
-# set environment variable "ACTIVITY_DB" 
-# to path of activity.db
-environ["ACTIVITY_DB"] = Path.cwd() / "activity.db"
-
-uploader = Uploader()
+environ["ACTIVITY_DB"] = str(Path.cwd() / "activity.db")
+uploader = Uploader(environ["ACTIVITY_DB"])
 tracker = Tracker()
 
 while True:

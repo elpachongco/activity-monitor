@@ -1,6 +1,6 @@
 from flask import Flask, request, Response, make_response
 import sqlite3 
-import os
+from pathlib import Path 
 
 app = Flask(__name__)
 
@@ -13,8 +13,8 @@ app = Flask(__name__)
 # Also set flask to dev mode (powershell)
 # $env:FLASK_ENV="development"
 
-# Path to sqlite database (Set as environment variable by main.py)
-dbPath = os.environ["ACTIVITY_DB"] 
+# Path to sqlite database 
+dbPath = "../../activity.db"
 
 db = sqlite3.connect(dbPath, check_same_thread=False)
 db.row_factory = sqlite3.Row
@@ -53,7 +53,6 @@ def getActivities():
         FROM activity_data 
         WHERE actStart > STRFTIME('%Y-%m-%d %H:%M:%f', 
             'now', 'localtime', {df})
-        ORDER BY actStart DESC
         """.format(
        df=dateFilter 
     ))
@@ -61,7 +60,16 @@ def getActivities():
     # fetchall() returns a list of SQL ROW objects. 
     # Creates a dictionary with key "rows" that contain a list of dict
     # that each represent a row in the table.
-    queryData = {"rows": [dict(row) for row in activityData.fetchall()]}
+    queryData = {}
+
+    queryKeys = ["actStart", "actEnd", "inactDuration", "processName", "windowName"]
+    for key in queryKeys:
+        queryData[key] = []
+        # queryData[key] = [dict(row)[key] for row in activityData.fetchall()]
+
+    for row in activityData.fetchall(): 
+        for key in queryKeys:
+            queryData[key].append( dict(row)[key] )
 
     headers = {'Access-Control-Allow-Origin': '*'}
     statusCode = 200

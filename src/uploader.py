@@ -1,12 +1,10 @@
 import sqlite3
-from os import environ
+from os import getenv, environ
 
 # This program accepts info about the activity then uploads it to an sqlite3 db
 
 class Uploader():
 
-    # Get db location from envornment variable ACTIVITY_DB
-    dbPath = environ["ACTIVITY_DB"]
     tableName = "activity_data"
 
     # Min amount of items to upload. If this number hasn't      
@@ -14,12 +12,13 @@ class Uploader():
     # (to be implemented).
     minUpload = 1
 
-    def __init__(self):
+    def __init__(self, dbPath):
         # - Connect to the db
         # - Create the table if it doesn't exist
         # Table will have column name same as 
         # Dictionary keys
 
+        self.dbPath = dbPath
         self.sqlConnection = sqlite3.connect(self.dbPath)
 
         self.sqlConnection.execute("""

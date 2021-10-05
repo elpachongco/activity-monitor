@@ -6,10 +6,12 @@ uploaded to an sqlite database.
 
 ## Setup
 
+
 ### Requirements
 
 - Windows OS
 - Python (tested on 3.7 & 3.9)
+
 
 ### Running the program on startups automatically
 
