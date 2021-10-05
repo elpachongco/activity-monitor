@@ -1,7 +1,14 @@
-all: style.css script.js
+all: style.css main.js bundle
 
-style.css: style.scss
-	sass.cmd style.scss ../style.css --no-source-map
+outDir = ../build
 
-script.js: script.tsx
-	tsc.cmd -p . --outDir ../
+style.css: 
+	sass.cmd style.scss $(outDir)/style.css --no-source-map
+
+bundle:
+	@echo "overwrite main with bundled modules"
+	rollup.cmd $(outDir)/main.js -o $(outDir)/main.js -f iife
+
+main.js: 
+	@echo "Build tsc files using tsconfig & ignore error with '-' "
+	-tsc.cmd -p . 
