@@ -2,7 +2,8 @@ import  {
 	getDaysInWeek, getTimesInDay, aSum, dtRangeIndex, dayStart,
 	includes, isTable } from "./utils";
 import { Dashboard } from "./components";
-import { RawActivity, Activity, React, ReactDOM} from "./types";
+// import { RawActivity, Activity, React, ReactDOM} from "./types";
+import { RawActivity, Activity } from "./types";
 
 // let periods = ["today", "24h","3d","7d","1M","3M","6M","1Y","all"]
 

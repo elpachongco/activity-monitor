@@ -12,12 +12,6 @@ export interface Activity extends RawActivity {
     actDuration: number[],
 }
 
-
-export declare const React = any;
-export declare const ReactDOM = any;
-export declare const JSX = any;
-export declare const Chart = any;
-
 declare global {
     namespace JSX {
         interface IntrinsicElements {
@@ -25,6 +19,10 @@ declare global {
             'canvas': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
         }
     }
+    const React = any;
+    const ReactDOM = any;
+    const JSX = any;
+    const Chart = any;
 }
 
 export interface Props {

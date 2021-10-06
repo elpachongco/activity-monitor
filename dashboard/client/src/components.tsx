@@ -1,4 +1,5 @@
-import { React, Props, Chart} from "./types";
+import { Props } from "./types";
+// import { React, Props, Chart} from "./types";
 
 function HeatmapSquare(props: Props) {
 	return (<div className="heatmap_square" value={props.value} />);

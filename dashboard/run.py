@@ -15,7 +15,7 @@ from pathlib import Path
 
 # change working directory (cwd), run flask
 runFlaskCmd = ["pipenv", "run", "flask", "run", "-p" ,"5000"]
-Popen(runFlaskCmd, cwd="./backend/")
+Popen(runFlaskCmd, cwd="./client/")
 
 # open index.html
 #indexPage = Path.cwd() / 'frontend'/ 'index.html'

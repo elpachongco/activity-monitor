@@ -1,8 +1,8 @@
-from flask import Flask, request, Response, make_response
+from flask import Flask, request, Response, make_response, redirect
 import sqlite3 
 from pathlib import Path 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="./Public/", static_url_path="")
 
 # This program receives GET requests from the frontend, queries the database
 # then responds in JSON (python dictionary)
@@ -75,3 +75,7 @@ def getActivities():
     statusCode = 200
 
     return queryData, statusCode, headers 
+
+@app.route('/', methods=['GET'])
+def index():
+    return redirect('/index.html')
