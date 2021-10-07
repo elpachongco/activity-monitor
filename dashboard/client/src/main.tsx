@@ -1,12 +1,9 @@
-import  {
-	getDaysInWeek, getTimesInDay, aSum, dtRangeIndex, dayStart,
-	includes, isTable } from "./utils";
-import { Dashboard } from "./components";
-// import { RawActivity, Activity, React, ReactDOM} from "./types";
+import  { getDaysInWeek, getTimesInDay, aSum, 
+    dtRangeIndex, dayStart } from "./utils.js";
+import { Dashboard } from "./components.js";
 import { RawActivity, Activity } from "./types";
 
 // let periods = ["today", "24h","3d","7d","1M","3M","6M","1Y","all"]
-
 
 let baseUrl = 'http://localhost:5000/data/'
 let url = new URL(baseUrl)
@@ -133,10 +130,10 @@ function main(activity: Activity): void
 
     } )();
 
-    console.log(hourlyActivity);
-    console.log(dailyActivity);
-    console.log(actVsInact - 100);
-    console.log(actInact10d);
+    console.log("hourly activity:", hourlyActivity);
+    console.log("daily activity:", dailyActivity);
+    console.log("act vs inact:" ,actVsInact - 100);
+    console.log("10d act inact", actInact10d);
 
     const data = {
         hourlyActivity,

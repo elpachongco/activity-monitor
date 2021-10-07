@@ -1,7 +1,23 @@
+/**
+ * Contains utility functions
+ * No global variables allowed.
+ */
+/**
+ * Return an array of strings of time in a 14-hour-format day.
+ * Useful for chart labels.
+ * @param interval - interval of the times to list in minutes
+ * @returns An array of strings containing time. Starts at 12:00:00 AM.
+ * @example
+ * ```ts
+ *  getTimesInDay(30)
+ *  >> ["12:00:00 AM", "12:30:00 AM", ... "11:30:00 PM"]
+ * ```
+*/
 function getTimesInDay(interval) {
     const absInterval = Math.abs(interval);
     let hours = [];
     let dateTime = (new Date()).setHours(0, 0, 0, 0);
+    // Convert interval (minutes) to ms
     let intervalMs = (absInterval * 60) * 1000;
     const maxMinutesInDay = 1440;
     for (let minutes = 0; minutes < maxMinutesInDay; minutes += interval) {
@@ -11,12 +27,29 @@ function getTimesInDay(interval) {
     }
     return hours;
 }
+/**
+ * Return the sum of any given array
+ * @example
+ * ```js
+ * aSum([-8, 2])
+ * >> -6
+ * ```
+ */
 function aSum(a) {
     return a.reduce((prevVal, currVal) => {
         return prevVal + currVal;
     });
 }
 ;
+/**
+ * Datetime Indexer
+ * Returns range of indexes of rows that fit the given datetime.
+ * Tests both `actStart` and `actEnd`.
+ * Assumes table is sorted ascending.
+ *
+ * @returns [null, null] if unable to find
+ * @returns [number, number] index
+ */
 function dtRangeIndex(table, start, end = new Date()) {
     let started = false;
     let ended = false;
@@ -42,9 +75,16 @@ function dtRangeIndex(table, start, end = new Date()) {
         i++;
     }
     ;
+    // return [startIndex || null, endIndex || null];
     return index;
 }
 ;
+/**
+ * Table verfier
+ * Checks wether the given table has exactly the same number of rows (array len)
+ * for each column (key/prop)
+ * @param table - any object with keys and value as Column and row
+ */
 function isTable(table) {
     let keys = Object.keys(table);
     if (keys.length < 1)
@@ -55,10 +95,21 @@ function isTable(table) {
             return false;
     return true;
 }
+/**
+ * Transforms given Date object with
+ * @param date
+ * @returns `date` but with time set to 00:00:00.00
+ */
 function dayStart(date = new Date()) {
     let newDate = date.setHours(0, 0, 0, 0);
     return new Date(newDate);
 }
+/**
+ * Tests whether obj is in array. Uses Strict equality `===`.
+ * @param obj - any
+ * @param arr -
+ * @returns `true` if object found in array
+ */
 function includes(obj, arr) {
     for (let item in arr) {
         if (obj === item)

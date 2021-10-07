@@ -1,1 +1,119 @@
-(()=>{"use strict";function e(e){return e.reduce(((e,t)=>e+t))}function t(e,t,a=new Date){let n=!1,r=!1,l={from:null,to:null},s=0;for(let c of e.actStart){let e=new Date(c);if(e>=t&&!n&&(l.from=s,n=!n),n&&e<=a&&(l.to=s,r=!r),r&&e>a)break;s++}return l}function a(e){return React.createElement("div",{className:"heatmap_square",value:e.value})}class n extends React.Component{render(){let e=[];for(let t=0;t<this.props.squares;t++)e.push(React.createElement(a,{value:t}));return React.createElement("div",{className:"heatmap"},e)}}class r extends React.Component{constructor(e){super(e),this.canvasRef=React.createRef()}createGraph(){new Chart(this.canvasRef.current,{type:"line",data:{labels:["January","February","March","April","May","June"],datasets:[{label:"My First dataset",backgroundColor:"rgb(255, 99, 132)",borderColor:"rgb(255, 99, 132)",data:[0,10,5,2,20,30,45]}]},options:{}})}componentDidMount(){this.createGraph()}render(){return React.createElement("div",{className:"lineGraph"},React.createElement("canvas",{id:"graphCanvas",ref:this.canvasRef,width:this.props.width,height:this.props.height}))}}class l extends React.Component{componentDidMount(){}render(){return React.createElement("div",{className:"dashboard"},React.createElement(n,{squares:25}),React.createElement(r,{width:20,height:20}))}}let s=new URL("http://localhost:5000/data/");s.searchParams.set("period","all"),fetch(s.toString()).then((e=>e.json())).then((e=>function(e){let t={actDuration:e.actStart.map(((t,a)=>{let n=new Date(t);return(new Date(e.actEnd[a]).valueOf()-n.valueOf())/1e3-e.inactDuration[a]}))};return Object.assign(e,t)}(e))).then((a=>function(a){let n=a.actStart,r=a.actDuration,s=a.inactDuration;const c={labels:null,data:null},o=Object.assign({},c);[c.labels,c.data]=(()=>{let e,t=function(e){const t=Math.abs(60);let a=[],n=(new Date).setHours(0,0,0,0),r=60*t*1e3;for(let e=0;e<1440;e+=60){let e=new Date(n).toLocaleTimeString();a.push(e),n+=r}return a}(),a=Array(24).fill(0,0,24),l=0;for(let t of n)e=new Date(t).getHours(),a[e]+=r[l],l++;return[t,a]})(),[o.labels,o.data]=(()=>{let e,t=Array(7).fill(0),a=0;for(let l of n)e=new Date(l).getDay(),t[e]+=r[a],a++;return[["sun","mon","tue","wed","thu","fri","sat"],t]})();const u=(()=>{let n=t(a,function(e=new Date){let t=e.setHours(0,0,0,0);return new Date(t)}()),[l,c]=[n.from,n.to];if(null==l||null==c)return 0;let o=r.slice(l,c+1),u=s.slice(l,c+1);return e(o)/e(u)*100})(),i=(()=>{let{from:e,to:l}=(()=>{let e=(new Date).getDate(),n=(new Date).setDate(e-10);return t(a,new Date(n))})();if(null==e||null==l)return;let c=[],o=[],u=[],i=0;for(let t of n.slice(e,l+1)){let a=new Date(t).toDateString(),n=e+i;0===i&&(u.push(a),c.push(r[n]),o.push(s[n])),a===u[u.length-1]?(c[c.length-1]+=r[n],o[o.length-1]+=s[n]):(c.push(r[n]),o.push(s[n]),u.push(a)),i++}return{acts:c,inacts:o,labels:u}})();console.log(c),console.log(o),console.log(u-100),console.log(i);const h={hourlyActivity:c,dailyActivity:o,actVsInact:u,actInact10d:i};ReactDOM.render(React.createElement(l,{data:h}),document.getElementById("root"))}(a)))})();
+import { getDaysInWeek, getTimesInDay, aSum, dtRangeIndex, dayStart } from "./utils.js";
+import { Dashboard } from "./components.js";
+// let periods = ["today", "24h","3d","7d","1M","3M","6M","1Y","all"]
+let baseUrl = 'http://localhost:5000/data/';
+let url = new URL(baseUrl);
+url.searchParams.set('period', "all");
+fetch(url.toString())
+    .then(response => response.json())
+    .then(data => getActDuration(data))
+    .then(activity => main(activity));
+function getActDuration(activity) {
+    let actDurations = activity["actStart"].map((item, i) => {
+        let start = new Date(item);
+        let end = new Date(activity["actEnd"][i]);
+        let duration = (end.valueOf() - start.valueOf()) / 1000;
+        return duration - activity["inactDuration"][i];
+    });
+    // let newActObj: { "actDuration": number[] };
+    let newActObj = { "actDuration": actDurations };
+    return Object.assign(activity, newActObj);
+}
+function main(activity) {
+    let actStart = activity["actStart"];
+    let actDuration = activity["actDuration"];
+    let inactDuration = activity["inactDuration"];
+    const hourlyActivity = {
+        labels: null,
+        data: null
+    };
+    // clone (instead of copying reference) 
+    const dailyActivity = Object.assign({}, hourlyActivity);
+    // Get most active hours in a day, todo: except today
+    [hourlyActivity.labels, hourlyActivity.data] = (() => {
+        let labels = getTimesInDay(60);
+        let data = Array(24).fill(0, 0, 24);
+        // Loop through days in the table
+        let i = 0;
+        let currentHour;
+        for (let item of actStart) {
+            let dt = new Date(item);
+            currentHour = dt.getHours();
+            data[currentHour] += actDuration[i];
+            i++;
+        }
+        ;
+        return [labels, data];
+    })();
+    // Get most active days in a week: except this week
+    [dailyActivity.labels, dailyActivity.data] = (() => {
+        let labels = getDaysInWeek();
+        let data = Array(7).fill(0);
+        // Loop through days in the table
+        let i = 0;
+        let weekDay;
+        for (let item of actStart) {
+            let dt = new Date(item);
+            weekDay = dt.getDay();
+            data[weekDay] += actDuration[i];
+            i++;
+        }
+        ;
+        return [labels, data];
+    })();
+    const actVsInact = (() => {
+        let entriesToday = dtRangeIndex(activity, dayStart());
+        let [iFrom, iTo] = [entriesToday.from, entriesToday.to];
+        if (iFrom == null || iTo == null)
+            return 0;
+        let todayAct = actDuration.slice(iFrom, iTo + 1);
+        let todayInact = inactDuration.slice(iFrom, iTo + 1);
+        let totalAct = aSum(todayAct);
+        let totalInact = aSum(todayInact);
+        return 100 * (totalAct / totalInact);
+    })();
+    const actInact10d = (() => {
+        let { from, to } = (() => {
+            let currDate = (new Date()).getDate();
+            let referenceDay = (new Date()).setDate(currDate - 10);
+            return dtRangeIndex(activity, new Date(referenceDay));
+        })();
+        if (from == null || to == null)
+            return;
+        let acts = [];
+        let inacts = [];
+        let labels = [];
+        let counter = 0;
+        for (let item of actStart.slice(from, to + 1)) {
+            let dtString = (new Date(item)).toDateString();
+            let activityIndex = from + counter;
+            if (counter === 0) {
+                labels.push(dtString);
+                acts.push(actDuration[activityIndex]);
+                inacts.push(inactDuration[activityIndex]);
+            }
+            if (dtString === labels[labels.length - 1]) {
+                acts[acts.length - 1] += actDuration[activityIndex];
+                inacts[inacts.length - 1] += inactDuration[activityIndex];
+            }
+            else {
+                acts.push(actDuration[activityIndex]);
+                inacts.push(inactDuration[activityIndex]);
+                labels.push(dtString);
+            }
+            counter++;
+        }
+        return { acts, inacts, labels };
+    })();
+    console.log("hourly activity:", hourlyActivity);
+    console.log("daily activity:", dailyActivity);
+    console.log("act vs inact:", actVsInact - 100);
+    console.log("10d act inact", actInact10d);
+    const data = {
+        hourlyActivity,
+        dailyActivity,
+        actVsInact,
+        actInact10d
+    };
+    ReactDOM.render(React.createElement(Dashboard, { data: data }), document.getElementById('root'));
+}

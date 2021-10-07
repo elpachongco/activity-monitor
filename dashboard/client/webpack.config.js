@@ -7,14 +7,7 @@ module.exports = {
     filename: "main.js",
     path: exportPath
   },
-  mode: "production"
+  mode: "development",
+  // devtool: false
 }
 
-module.exports = {
-  entry: "./build/style.css",
-  output: {
-    filename: "style.css",
-    path: exportPath
-  },
-  mode: "production"
-}

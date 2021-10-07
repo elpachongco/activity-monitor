@@ -1,3 +1,4 @@
+// import { React, Props, Chart} from "./types";
 function HeatmapSquare(props) {
     return (React.createElement("div", { className: "heatmap_square", value: props.value }));
 }
