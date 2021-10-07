@@ -1,63 +1,67 @@
 # ⌚ Activity Tracker
 
 This program logs user activity based on the foreground window name. 
-Inactivity is also monitored for each program based on input activity. The data is 
-uploaded to an sqlite database. 
+Inactivity is also monitored for each program based on input activity. 
+The data is uploaded to an sqlite database. 
 
 ## Setup
 
-
-### Requirements
+### Usage Requirements
 
 - Windows OS
-- Python (tested on 3.7 & 3.9)
+- Python (tested on 3.7 & 3.9) 
+- Pipenv. Install: `pip install pipenv`
 
+To get the required project dependencies:
+```bat
+cd path\to\activity-monitor
+pipenv sync 
+```
+You can now run `main.py`.
 
 ### Running the program on startups automatically
 
-#### Windows
-This is pretty straightforward: Make a windows shortcut of the main-app (right
+Make a windows shortcut of the `startup.bat` (right
 click -> send to -> desktop -> create shortcut), then paste that shortcut (which
 will be on Desktop) to %appdata%\Microsoft\Windows\Start Menu\Programs\Startup
-(This can easily be accessed by pressing the Windows Key + r then entering
-"shell:startup"). A file explorer window will show up. Paste the shortcut.
-
-In my case, I had to create a .bat file so that I can run it with pipenv where
-ezsheets is installed.
-
-startuprun.bat:
-
-      pipenv run python main-app.pyw
-
-## BUGS
-
-None known yet. Program hasn't been tested extensively.
+(This can easily be accessed by pressing the `Windows Key + r` then entering
+`shell:startup`). A file explorer window will show up. Paste the shortcut. 
+The program will now run every startup.
 
 ## File Structure 
 
-```
+```sh
 .
 │   .gitignore
-│   activity.db
+│   activity.db # Generated SQL db
 │   CHANGELOG.md
-│   main.py
+│   main.py # Main controller
 │   Pipfile
 │   Pipfile.lock
-│   README.md       
-│   startuprun.bat
+│   README.md
+│   startup.bat
 │
 ├───config
 │       config.py
 │       keywords.py
-│    
+│
+├───dashboard # Experimental dashboard
 │
 ├───docs
-│       structure.md
+│       doc.md
 │
-└───src
-      tracker.py
-      uploader.py
+└───src # Files used by main.py 
+        tracker.py
+        uploader.py
+
 ```
+## Bugs
+
+None known yet. Program hasn't been tested extensively.
+
+## Development 
+
+See `./docs/`. 
 
 ## TODO 
 - Local dashboard
