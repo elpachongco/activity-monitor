@@ -1,24 +1,31 @@
-.heatmap {
-  background-color: black;
-  max-width: 25em;
+@font-face {
+  font-family: "Barlow";
+  src: url("/Barlow-Regular.ttf");
 }
-.heatmap .heatmap_square {
-  height: 0.5em;
-  width: 0.5em;
-  background-color: #76ff14;
-  border-radius: 8%;
-  display: inline-block;
-  margin: 0.1em;
-}
-.heatmap .heatmap_square:hover {
-  background-color: white;
-}
-
-.dashboard {
-  max-width: 50em;
-}
-
 body {
   margin: 0px;
   padding: 0px;
+  background-color: #151515;
+  color: #ffffff;
+  font-family: "Barlow";
+}
+
+.header {
+  padding: 0 2em 0 2em;
+}
+.header p {
+  color: #949495;
+  text-align: left;
+}
+.header .title {
+  color: #ffffff;
+  font-size: 40px;
+}
+
+.card {
+  padding: 1.6em;
+  background-color: #202022;
+  margin: 1.6em;
+  text-align: center;
+  border-radius: 3px;
 }

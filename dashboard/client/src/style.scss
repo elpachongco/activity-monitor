@@ -1,41 +1,49 @@
-// 
+$bg_main: #151515;
+$bg_secondary:#202022;
+$fg_main: #ffffff;
+$fg_secondary: #949495;
+$color1: #b7e1cd;
+$color2: #f4c7c3;
+$color3: #949495;
 
-@use "sass:color";
-
-$font-stack: Barlow;
-$primary-color: Green;
-$heatmap-primary-color: hsla(95, 100%, 54%, 1);
-$heatmap-6: color.adjust($heatmap-primary-color, $alpha: -.15) ;
-$heatmap-5: color.adjust($heatmap-6, $alpha: -.15) ;
-$heatmap-4: color.adjust($heatmap-5, $alpha: -.15) ;
-$heatmap-3: color.adjust($heatmap-4, $alpha: -.15) ;
-$heatmap-2: color.adjust($heatmap-3, $alpha: -.15) ;
-$heatmap-1: color.adjust($heatmap-2, $alpha: -.15) ;
-
-.heatmap {
-    .heatmap_square {
-    height: .5em;
-    width: .5em;
-    background-color: $heatmap-primary-color;
-    border-radius: 8%;
-    display: inline-block;
-    margin: .1em;
-    }
-
-    .heatmap_square:hover {
-    background-color: white;
-    }
-
-    background-color: black;
-    max-width: 25em;
+@font-face {
+    font-family: "Barlow";
+    src: url("/Barlow-Regular.ttf");
 }
 
-.dashboard {
-    max-width: 50em;
-}
+
+// .dashboard {
+    // max-width: 20em;
+// }
 
 body {
     margin: 0px;
     padding: 0px;
+    background-color: $bg_main;
+    color: $fg_main;
+    font-family: "Barlow";
 }
 
+.header {
+    padding: 0 2em 0 2em;
+
+
+    p {
+        color: $fg_secondary;
+        text-align: left;
+
+
+    }
+    .title{
+        color: $fg_main;
+        font-size: 40px;
+    }
+}
+
+.card {
+    padding: 1.6em;
+    background-color: $bg_secondary;
+    margin: 1.6em;
+    text-align: center;
+    border-radius: 3px;
+}

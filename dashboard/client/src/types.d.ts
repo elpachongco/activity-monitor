@@ -17,6 +17,9 @@ declare global {
         interface IntrinsicElements {
             'div': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'canvas': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'p': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'h1': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'h2': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
         }
     }
     const React = any;
@@ -32,3 +35,17 @@ export interface Props {
 export class Component {
     [key: string]: any;
 }
+
+export interface ChartData { labels: null | string[], data: null | number[] }    
+
+
+export interface GraphData { 
+	labels: any[]; 
+	datasets: { 
+		label: string; 
+		backgroundColor?: string | string[]; 
+		borderColor?: string | null; 
+		data: number[]; 
+		tension?: number; 
+	}[]
+};

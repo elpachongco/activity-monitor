@@ -1,59 +1,68 @@
 // import { React, Props, Chart} from "./types";
-function HeatmapSquare(props) {
-    return (React.createElement("div", { className: "heatmap_square", value: props.value }));
+function Header() {
+    return (React.createElement("div", { className: "header" },
+        React.createElement("p", { className: "title" }, "Activity Report \uD83C\uDF1E"),
+        React.createElement("p", null, "This program logs user activity based on the foreground window name. Inactivity is also monitored for each program based on input activity. The data is uploaded to an sqlite database.")));
 }
-class Heatmap extends React.Component {
-    render() {
-        let squares = [];
-        for (let i = 0; i < this.props.squares; i++)
-            squares.push(React.createElement(HeatmapSquare, { value: i }));
-        return (React.createElement("div", { className: "heatmap" }, squares));
-    }
-}
-class Linegraph extends React.Component {
+class Graph extends React.Component {
     constructor(props) {
         super(props);
         this.canvasRef = React.createRef();
     }
     createGraph() {
-        const labels = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-        ];
-        const data = {
-            labels: labels,
-            datasets: [{
-                    label: 'My First dataset',
-                    backgroundColor: 'rgb(255, 99, 132)',
-                    borderColor: 'rgb(255, 99, 132)',
-                    data: [0, 10, 5, 2, 20, 30, 45],
-                }]
+        const config = {
+            type: this.props.type,
+            data: this.props.data,
+            options: this.props.options
         };
-        const graphConfig = {
-            type: 'line',
-            data: data,
-            options: {}
-        };
-        new Chart(this.canvasRef.current, graphConfig);
+        new Chart(this.canvasRef.current, config);
     }
     componentDidMount() {
         this.createGraph();
     }
     render() {
-        return (React.createElement("div", { className: "lineGraph" },
-            React.createElement("canvas", { id: "graphCanvas", ref: this.canvasRef, width: this.props.width, height: this.props.height })));
+        return (React.createElement("div", { className: "graph" },
+            React.createElement("canvas", { ref: this.canvasRef })));
     }
 }
 export class Dashboard extends React.Component {
+    constructor(props) {
+        super(props);
+        const data = this.props.data;
+        this.ratio10d = {
+            labels: data.ratio10d.labels,
+            datasets: [
+                {
+                    label: 'Activity time / Inactivity time',
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: data.ratio10d.ratio,
+                    tension: 0.28
+                }
+            ]
+        };
+        this.actVsInact = {
+            labels: ["Activity", "Inactivity"],
+            datasets: [
+                {
+                    label: "Today's activity vs inactivity",
+                    data: [data.actVsInact, (100 - data.actVsInact)],
+                    backgroundColor: ['#b7e1cd', '#949495'],
+                    borderColor: null,
+                }
+            ]
+        };
+    }
     componentDidMount() {
     }
     render() {
         return (React.createElement("div", { className: "dashboard" },
-            React.createElement(Heatmap, { squares: 25 }),
-            React.createElement(Linegraph, { width: 20, height: 20 })));
+            React.createElement(Header, null),
+            React.createElement("div", { className: "card ratio" },
+                React.createElement("h2", null, "10-Day Activity / Inactivity Ratio"),
+                React.createElement(Graph, { type: "line", data: this.ratio10d })),
+            React.createElement("div", { className: "card doughnut" },
+                React.createElement("h2", null, "Active vs Inactive Time Today"),
+                React.createElement(Graph, { type: "doughnut", data: this.actVsInact }))));
     }
 }

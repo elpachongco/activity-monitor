@@ -1,26 +1,24 @@
-import { Props } from "./types";
+import { Props, GraphData } from "./types";
 // import { React, Props, Chart} from "./types";
 
-function HeatmapSquare(props: Props) {
-	return (<div className="heatmap_square" value={props.value} />);
+function Header() {
+	return (
+			<div className="header">
+				<p className="title">Activity Report 🌞</p>
+				<p> 
+					This program logs user activity based on the foreground 
+					window name. Inactivity is also monitored for each program 
+					based on input activity. The data is uploaded to an sqlite 
+					database. 
+				</p>
+			</div>
+	);
 }
 
-
-class Heatmap extends React.Component {
-    props: any;
-	render() {
-		let squares = [];
-		for (let i=0; i < this.props.squares; i++)	
-			squares.push(<HeatmapSquare value={i} />);
-
-		return (<div className="heatmap">{squares}</div>);
-	}
-}
-
-
-class Linegraph extends React.Component {
+class Graph extends React.Component {
     props: any;
     canvasRef: any;
+
 	constructor(props: Props) 
 	{
 		super(props);
@@ -28,42 +26,21 @@ class Linegraph extends React.Component {
 	}
 
 	createGraph() {
-		const labels = [
-		  'January',
-		  'February',
-		  'March',
-		  'April',
-		  'May',
-		  'June',
-		];
-		
-		const data = {
-		labels: labels,
-		datasets: [{
-			label: 'My First dataset',
-			backgroundColor: 'rgb(255, 99, 132)',
-			borderColor: 'rgb(255, 99, 132)',
-			data: [0, 10, 5, 2, 20, 30, 45],
-		}]
-		};
-	
-		const graphConfig = {
-			type: 'line',
-			data: data,
-			options: {}
-		};
-		new Chart(this.canvasRef.current, graphConfig);
+		const config = {
+			type: this.props.type,
+			data: this.props.data,
+			options: this.props.options
+		}
+		new Chart(this.canvasRef.current, config);
 	}
-
 	componentDidMount() {
 		this.createGraph();
 	}
 
 	render() {
 		return (
-			<div className="lineGraph">
-				<canvas id="graphCanvas" ref={this.canvasRef} width={this.props.width} 
-				height={this.props.height} />
+			<div className="graph">
+				<canvas ref={this.canvasRef}></canvas>
 			</div>
 		)
 	}
@@ -71,14 +48,58 @@ class Linegraph extends React.Component {
 
 export class Dashboard extends React.Component {
     props: any;
+	ratio10d: GraphData;
+	actVsInact: GraphData;
+
+	constructor(props: Props)
+	{
+		super(props)
+		const data = this.props.data
+		this.ratio10d = {
+			labels: data.ratio10d.labels,
+			datasets: [
+			{
+				label: 'Activity time / Inactivity time',
+				backgroundColor: 'rgb(255, 99, 132)',
+				borderColor: 'rgb(255, 99, 132)',
+				data: data.ratio10d.ratio,
+				tension: 0.28
+			}
+			]
+		 
+		};
+		this.actVsInact = {
+			labels: ["Activity", "Inactivity"],
+			datasets: [
+			{
+				label: "Today's activity vs inactivity",
+				data: [data.actVsInact, (100 - data.actVsInact)] ,
+				backgroundColor: ['#b7e1cd', '#949495'],
+				borderColor: null,
+			}
+			]
+		 
+		};
+	}
 	componentDidMount() {
 	}
 
 	render() {
 		return (
 			<div className="dashboard">
-				<Heatmap squares={25}/>
-				<Linegraph width={20} height={20}/>
+
+				<Header />
+
+				<div className="card ratio">
+					<h2>10-Day Activity / Inactivity Ratio</h2>
+					<Graph type="line" data={this.ratio10d}/>
+				</div>
+
+				<div className="card doughnut">
+					<h2>Active vs Inactive Time Today</h2>
+					<Graph type="doughnut" data={this.actVsInact}/>
+				</div>
+
 			</div>
 		);
 	}

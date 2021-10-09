@@ -1,8 +1,8 @@
 import { getDaysInWeek, getTimesInDay, aSum, dtRangeIndex, dayStart } from "./utils.js";
 import { Dashboard } from "./components.js";
 // let periods = ["today", "24h","3d","7d","1M","3M","6M","1Y","all"]
-let baseUrl = 'http://localhost:5000/data/';
-let url = new URL(baseUrl);
+// let baseUrl = 'http://localhost:5000/data/'
+let url = new URL(`http://${window.location.host}/data/`);
 url.searchParams.set('period', "all");
 fetch(url.toString())
     .then(response => response.json())
@@ -72,48 +72,49 @@ function main(activity) {
         let totalInact = aSum(todayInact);
         return 100 * (totalAct / totalInact);
     })();
-    const actInact10d = (() => {
+    const ratio10d = (() => {
         let { from, to } = (() => {
             let currDate = (new Date()).getDate();
-            let referenceDay = (new Date()).setDate(currDate - 10);
+            let referenceDay = (new Date()).setDate(currDate - 15);
             return dtRangeIndex(activity, new Date(referenceDay));
         })();
         if (from == null || to == null)
             return;
-        let acts = [];
-        let inacts = [];
+        let acts = 0;
+        let inacts = 0;
         let labels = [];
+        let ratio = [];
         let counter = 0;
         for (let item of actStart.slice(from, to + 1)) {
             let dtString = (new Date(item)).toDateString();
             let activityIndex = from + counter;
             if (counter === 0) {
                 labels.push(dtString);
-                acts.push(actDuration[activityIndex]);
-                inacts.push(inactDuration[activityIndex]);
+                acts = actDuration[activityIndex];
+                inacts = inactDuration[activityIndex];
             }
             if (dtString === labels[labels.length - 1]) {
-                acts[acts.length - 1] += actDuration[activityIndex];
-                inacts[inacts.length - 1] += inactDuration[activityIndex];
+                acts += actDuration[activityIndex];
+                inacts += inactDuration[activityIndex];
             }
             else {
-                acts.push(actDuration[activityIndex]);
-                inacts.push(inactDuration[activityIndex]);
+                ratio.push(acts / inacts);
                 labels.push(dtString);
+                acts = inacts = 0;
             }
             counter++;
         }
-        return { acts, inacts, labels };
+        return { ratio, labels };
     })();
     console.log("hourly activity:", hourlyActivity);
     console.log("daily activity:", dailyActivity);
     console.log("act vs inact:", actVsInact - 100);
-    console.log("10d act inact", actInact10d);
+    console.log("10d act inact", ratio10d);
     const data = {
         hourlyActivity,
         dailyActivity,
         actVsInact,
-        actInact10d
+        ratio10d
     };
     ReactDOM.render(React.createElement(Dashboard, { data: data }), document.getElementById('root'));
 }
