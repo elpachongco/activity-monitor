@@ -14,7 +14,7 @@ from pathlib import Path
 #os.environ["FLASK_APP"] = str(flaskProgramLocation)
 
 # change working directory (cwd), run flask
-runFlaskCmd = ["pipenv", "run", "flask", "run", "-p" ,"5000"]
+runFlaskCmd = ["pipenv", "run", "flask", "run", "-p" ,"5000", "--host", "0.0.0.0"]
 Popen(runFlaskCmd, cwd="./client/")
 
 # open index.html
