@@ -23,3 +23,5 @@ my usage/activity are:
     - Total activity duration per day in a week ✅
     - 10-day activity vs inactivity ✅
     - Ratio of activity and inactivity per day in the last x days 
+    - calendar view of 1-year daily activity duration.
+    -  
