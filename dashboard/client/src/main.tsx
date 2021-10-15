@@ -96,7 +96,7 @@ function main(activity: Activity): void
 
         let {from, to} = ( () => {
             let currDate = (new Date()).getDate();
-            let referenceDay = (new Date()).setDate(currDate - 15);       
+            let referenceDay = (new Date()).setDate(currDate - 30);       
             return dtRangeIndex(activity, new Date(referenceDay)) 
         })()
 
@@ -108,6 +108,9 @@ function main(activity: Activity): void
         for ( let item of actStart.slice(from, to + 1) ) {
 
             let dtString = (new Date(item)).toDateString()
+            // ommit year
+            dtString = dtString.slice(0, 10) 
+
             let activityIndex = from + counter
             if (counter === 0) { 
                 labels.push(dtString)
@@ -131,7 +134,7 @@ function main(activity: Activity): void
 
     console.log("hourly activity:", hourlyActivity);
     console.log("daily activity:", dailyActivity);
-    console.log("act vs inact:" ,actVsInact - 100);
+    console.log("act vs inact:", actVsInact - 100);
     console.log("10d act inact", ratio10d);
 
     const data = {
