@@ -20,6 +20,7 @@ declare global {
             'p': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'h1': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'h2': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'li': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
         }
     }
     const React = any;

@@ -75,7 +75,7 @@ function main(activity) {
     const ratio10d = (() => {
         let { from, to } = (() => {
             let currDate = (new Date()).getDate();
-            let referenceDay = (new Date()).setDate(currDate - 15);
+            let referenceDay = (new Date()).setDate(currDate - 30);
             return dtRangeIndex(activity, new Date(referenceDay));
         })();
         if (from == null || to == null)
@@ -87,6 +87,8 @@ function main(activity) {
         let counter = 0;
         for (let item of actStart.slice(from, to + 1)) {
             let dtString = (new Date(item)).toDateString();
+            // ommit year
+            dtString = dtString.slice(0, 10);
             let activityIndex = from + counter;
             if (counter === 0) {
                 labels.push(dtString);
@@ -110,11 +112,34 @@ function main(activity) {
     console.log("daily activity:", dailyActivity);
     console.log("act vs inact:", actVsInact - 100);
     console.log("10d act inact", ratio10d);
+    const calendar = (() => {
+        let day = 24 * 60 * 60 * 1000;
+        let year = 364 * day;
+        let yearAgo = dayStart().valueOf() - year;
+        let durs = Array(364).fill(0);
+        let labels = [];
+        for (let i = 0; i < 364; i++) {
+            let dt = new Date(yearAgo + (day * i));
+            labels.push(dt);
+            if (dt < new Date(actStart[0]))
+                continue;
+            let dtTomorrow = new Date(dt.valueOf() + day);
+            actStart.map((item, j) => {
+                let timeStamp = new Date(item);
+                if (timeStamp > dt && timeStamp < dtTomorrow) {
+                    durs[i] += actDuration[j];
+                }
+            });
+        }
+        console.log({ durs, labels });
+        return { durs, labels };
+    })();
     const data = {
         hourlyActivity,
         dailyActivity,
         actVsInact,
-        ratio10d
+        ratio10d,
+        calendar
     };
     ReactDOM.render(React.createElement(Dashboard, { data: data }), document.getElementById('root'));
 }

@@ -2,6 +2,38 @@
   font-family: "Barlow";
   src: url("/Barlow-Regular.ttf");
 }
+.calendarView {
+  height: 8.4em;
+  width: 62.4em;
+  background-color: #202022;
+}
+.calendarView .square {
+  height: 1.2em;
+  width: 1.2em;
+  border-radius: 13%;
+  background-color: #ffffff;
+  margin: 0.1em;
+  display: inline-block;
+}
+.calendarView .square.a {
+  background-color: green;
+}
+.calendarView .square.b {
+  background-color: blue;
+}
+.calendarView .square.c {
+  background-color: orange;
+}
+.calendarView .square.d {
+  background-color: red;
+}
+.calendarView .square.e {
+  background-color: yellowgreen;
+}
+.calendarView .square.f {
+  background-color: violet;
+}
+
 body {
   margin: 0px;
   padding: 0px;

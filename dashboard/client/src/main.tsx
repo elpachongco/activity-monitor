@@ -137,11 +137,40 @@ function main(activity: Activity): void
     console.log("act vs inact:", actVsInact - 100);
     console.log("10d act inact", ratio10d);
 
+    const calendar = ( () => {
+
+        let day = 24 * 60 * 60 * 1000
+        let year = 364 * day
+        let yearAgo = dayStart().valueOf() - year  
+        let durs: number[] = Array(364).fill(0);
+        let labels: Date[] = [];
+        
+        for (let i=0; i < 364; i++) {
+            let dt = new Date(yearAgo + (day * i))
+            labels.push(dt)
+            if (dt < new Date(actStart[0])) continue;
+
+            let dtTomorrow = new Date(dt.valueOf() + day)
+
+            actStart.map( (item, j) => {
+                let timeStamp = new Date(item)
+                if ( timeStamp > dt && timeStamp < dtTomorrow) {
+                    durs[i] += actDuration[j]
+                }
+            })
+
+        }
+
+        console.log( {durs, labels})
+        return {durs, labels}
+    })()
+
     const data = {
         hourlyActivity,
         dailyActivity,
         actVsInact,
-        ratio10d
+        ratio10d,
+        calendar
     }  
 
     ReactDOM.render(

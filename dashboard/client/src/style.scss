@@ -11,6 +11,39 @@ $color3: #949495;
     src: url("/Barlow-Regular.ttf");
 }
 
+.calendarView {
+    height: 8.4em;
+    width: 62.4em;
+    background-color: $bg_secondary;
+
+    .square {
+        height: 1.2em;
+        width: 1.2em;
+        border-radius: 13%;
+        background-color: $fg_main;
+        margin: .1em;
+        display: inline-block
+    }
+    .square.a {
+        background-color: green;
+    } 
+    .square.b {
+        background-color: blue;
+    } 
+    .square.c {
+        background-color: orange;
+    }
+    .square.d {
+        background-color: red;
+    }
+    .square.e {
+        background-color:yellowgreen;
+    }
+    .square.f {
+        background-color:violet;
+    }
+}
+
 
 // .dashboard {
     // max-width: 20em;
