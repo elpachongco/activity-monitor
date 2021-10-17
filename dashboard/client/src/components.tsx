@@ -83,9 +83,11 @@ class CalendarView extends React.Component {
 		return (
 			// 364 squares from today to past year in 7 columns
 			// Vary each color to 8 levels of intensity depending on time
-			<div className="calendarView">
+			<div className="calendarView card">
 				<svg>
+					<g className="squares">
 					{squares}
+					</g>
 				</svg>
 			</div>	
 		);

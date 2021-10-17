@@ -23,52 +23,55 @@ $sqMainColor: green;
     width: 62.4em;
     background-color: $bg_secondary;
 
-
-
     svg {
-        height: 100%;
-        width: 100%;
-
-        $rWdith: .9em;
-        $rHeight: .9em;
-        $rMargin: .3em;
-
-        rect {
-            width: $rWdith;
-            height: $rHeight;
 
 
-            $x: 0; $y: 0; 
-            @for $i from 0 through 363 { 
+        $rWidth: .75em;
+        $rHeight: .75em;
+        $rMargin: .32em;
 
-                $y: $i%7 * ($rHeight + $rMargin);
-                @if $i%7 == 0 {
-                    $y: 0;
-                    @if $i > 6 {
-                        $x: $x + $rWdith + $rMargin;
+        height: $rHeight * 7 + $rMargin * 6;
+        width: $rWidth * 52 + $rMargin * 51;       
+        g {
+
+            rect {
+                width: $rWidth;
+                height: $rHeight;
+                rx: .11em;
+
+
+                $x: 0; $y: 0; 
+                @for $i from 0 through 363 { 
+
+                    $y: $i%7 * ($rHeight + $rMargin);
+                    @if $i%7 == 0 {
+                        $y: 0;
+                        @if $i > 6 {
+                            $x: $x + $rWidth + $rMargin;
+                        }
+                    }
+                    &.num-#{$i} {
+                        y: $y;
+                        x: $x;
                     }
                 }
-                &.num-#{$i} {
-                    y: $y;
-                    x: $x;
-                }
-            }
 
-            $squareColor: green;
-            @for $i from 0 through 5 {
-                @if $i == 0 {
-                    $squareColor: $sqDeadColor;
-                } @else {
-                    @if $i == 1 { $squareColor: $sqMainColor;  }
-                    $squareColor: 
-                        color.adjust($squareColor, $lightness: 10% * $i);
+                $squareColor: green;
+                @for $i from 0 through 5 {
+                    @if $i == 0 {
+                        $squareColor: $sqDeadColor;
+                    } @else {
+                        @if $i == 1 { $squareColor: $sqMainColor;  }
+                        $squareColor: 
+                            color.adjust($squareColor, $lightness: 10% * $i);
+                    }
+                    &.color-#{$i} {
+                        fill: $squareColor;
+                    }
                 }
-                &.color-#{$i} {
-                    fill: $squareColor;
-                }
-            }
-            
-        }  
+                
+            }  
+        }
     }
 }
 

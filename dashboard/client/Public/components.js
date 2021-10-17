@@ -56,8 +56,9 @@ class CalendarView extends React.Component {
         return (
         // 364 squares from today to past year in 7 columns
         // Vary each color to 8 levels of intensity depending on time
-        React.createElement("div", { className: "calendarView" },
-            React.createElement("svg", null, squares)));
+        React.createElement("div", { className: "calendarView card" },
+            React.createElement("svg", null,
+                React.createElement("g", { className: "squares" }, squares))));
     }
 }
 class Graph extends React.Component {
