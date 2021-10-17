@@ -1,3 +1,5 @@
+@use "sass:color";
+
 $bg_main: #151515;
 $bg_secondary:#202022;
 $fg_main: #ffffff;
@@ -6,48 +8,72 @@ $color1: #b7e1cd;
 $color2: #f4c7c3;
 $color3: #949495;
 
+$sqDeadColor: $color3;
+$sqMainColor: green;
+
 @font-face {
     font-family: "Barlow";
     src: url("/Barlow-Regular.ttf");
 }
+
+
 
 .calendarView {
     height: 8.4em;
     width: 62.4em;
     background-color: $bg_secondary;
 
-    .square {
-        height: 1.2em;
-        width: 1.2em;
-        border-radius: 13%;
-        background-color: $fg_main;
-        margin: .1em;
-        display: inline-block
-    }
-    .square.a {
-        background-color: green;
-    } 
-    .square.b {
-        background-color: blue;
-    } 
-    .square.c {
-        background-color: orange;
-    }
-    .square.d {
-        background-color: red;
-    }
-    .square.e {
-        background-color:yellowgreen;
-    }
-    .square.f {
-        background-color:violet;
+
+
+    svg {
+        height: 100%;
+        width: 100%;
+
+        $rWdith: .9em;
+        $rHeight: .9em;
+        $rMargin: .3em;
+
+        rect {
+            width: $rWdith;
+            height: $rHeight;
+
+
+            $x: 0; $y: 0; 
+            @for $i from 0 through 363 { 
+
+                $y: $i%7 * ($rHeight + $rMargin);
+                @if $i%7 == 0 {
+                    $y: 0;
+                    @if $i > 6 {
+                        $x: $x + $rWdith + $rMargin;
+                    }
+                }
+                &.num-#{$i} {
+                    y: $y;
+                    x: $x;
+                }
+            }
+
+            $squareColor: green;
+            @for $i from 0 through 5 {
+                @if $i == 0 {
+                    $squareColor: $sqDeadColor;
+                } @else {
+                    @if $i == 1 { $squareColor: $sqMainColor;  }
+                    $squareColor: 
+                        color.adjust($squareColor, $lightness: 10% * $i);
+                }
+                &.color-#{$i} {
+                    fill: $squareColor;
+                }
+            }
+            
+        }  
     }
 }
 
 
-// .dashboard {
-    // max-width: 20em;
-// }
+
 
 body {
     margin: 0px;

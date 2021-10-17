@@ -21,6 +21,9 @@ declare global {
             'h1': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'h2': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'li': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'svg': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'g': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'rect': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
         }
     }
     const React = any;

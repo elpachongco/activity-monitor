@@ -32,8 +32,10 @@ class CalendarView extends React.Component {
             });
             return normalized;
         })(this.props.data.durs);
-        let lut = ["a", "b", "c", "d", "e", "f"];
+        // let lut = ["a","b","c","d","e","f"]
         console.log(normalizedDurs);
+        let column = 0;
+        let row = 0;
         for (let i = 0; i < 364; i++) {
             // bruh
             let color = 0;
@@ -49,12 +51,13 @@ class CalendarView extends React.Component {
                 color = 4;
             else if (normalizedDurs[i] < ((100 / 6) * 6))
                 color = 5;
-            squares.push(React.createElement("div", { className: `square ${lut[color]}`, key: i.toString() }));
+            squares.push(React.createElement("rect", { className: `num-${i} color-${color}`, key: i.toString() }));
         }
         return (
         // 364 squares from today to past year in 7 columns
         // Vary each color to 8 levels of intensity depending on time
-        React.createElement("div", { className: "calendarView" }, squares));
+        React.createElement("div", { className: "calendarView" },
+            React.createElement("svg", null, squares)));
     }
 }
 class Graph extends React.Component {

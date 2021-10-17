@@ -57,9 +57,12 @@ class CalendarView extends React.Component {
 			return normalized
 		})(this.props.data.durs)
 
-		let lut = ["a","b","c","d","e","f"]
+		// let lut = ["a","b","c","d","e","f"]
 
 		console.log(normalizedDurs)
+
+		let column = 0
+		let row = 0
 		for (let i=0; i < 364; i++) {
 
 			// bruh
@@ -72,7 +75,7 @@ class CalendarView extends React.Component {
 			else if ( normalizedDurs[i] < ((100/6) * 6) ) color = 5;
 
 			squares.push(
-				<div className={`square ${lut[color]}`} 
+				<rect className={`num-${i} color-${color}`} 
 				key={i.toString()} />
 			)
 		}
@@ -81,7 +84,9 @@ class CalendarView extends React.Component {
 			// 364 squares from today to past year in 7 columns
 			// Vary each color to 8 levels of intensity depending on time
 			<div className="calendarView">
-				{squares}
+				<svg>
+					{squares}
+				</svg>
 			</div>	
 		);
 	}
