@@ -57,11 +57,13 @@ The program will now run every startup.
 ```
 ## Bugs
 
-None known yet. Program hasn't been tested extensively.
+Program hasn't been tested extensively.
 
-## Development 
+1. No mechanism against programs or webpages that change window names
 
-See `./docs/`. 
+## Documentation
+
+See [docs](./docs/). 
 
 ## TODO 
 - Local dashboard
