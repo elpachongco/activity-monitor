@@ -34,8 +34,6 @@ class CalendarView extends React.Component {
         })(this.props.data.durs);
         // let lut = ["a","b","c","d","e","f"]
         console.log(normalizedDurs);
-        let column = 0;
-        let row = 0;
         for (let i = 0; i < 364; i++) {
             // bruh
             let color = 0;
@@ -86,14 +84,21 @@ export class Dashboard extends React.Component {
     constructor(props) {
         super(props);
         const data = this.props.data;
-        this.ratio10d = {
-            labels: data.ratio10d.labels,
+        this.linegraph = {
+            labels: data.linegraph.labels,
             datasets: [
                 {
-                    label: 'Activity time / Inactivity time',
+                    label: 'Activity',
                     backgroundColor: 'rgb(255, 99, 132)',
                     borderColor: 'rgb(255, 99, 132)',
-                    data: data.ratio10d.ratio,
+                    data: data.linegraph.acts,
+                    tension: 0.28
+                },
+                {
+                    label: 'Inactivity',
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: data.linegraph.inacts,
                     tension: 0.28
                 }
             ]
@@ -117,8 +122,8 @@ export class Dashboard extends React.Component {
             React.createElement(Header, null),
             React.createElement(CalendarView, { data: this.props.data.calendar }),
             React.createElement("div", { className: "card ratio" },
-                React.createElement("h2", null, "10-Day Activity / Inactivity Ratio"),
-                React.createElement(Graph, { type: "line", data: this.ratio10d })),
+                React.createElement("h2", null, " 30-day Activity / Inactivity"),
+                React.createElement(Graph, { type: "line", data: this.linegraph })),
             React.createElement("div", { className: "card doughnut" },
                 React.createElement("h2", null, "Active vs Inactive Time Today"),
                 React.createElement(Graph, { type: "doughnut", data: this.actVsInact }))));

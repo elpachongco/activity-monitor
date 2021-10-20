@@ -61,8 +61,6 @@ class CalendarView extends React.Component {
 
 		console.log(normalizedDurs)
 
-		let column = 0
-		let row = 0
 		for (let i=0; i < 364; i++) {
 
 			// bruh
@@ -128,21 +126,28 @@ class Graph extends React.Component {
 
 export class Dashboard extends React.Component {
     props: any;
-	ratio10d: GraphData;
+	linegraph: GraphData;
 	actVsInact: GraphData;
 
 	constructor(props: Props)
 	{
 		super(props)
 		const data = this.props.data
-		this.ratio10d = {
-			labels: data.ratio10d.labels,
+		this.linegraph = {
+			labels: data.linegraph.labels,
 			datasets: [
 			{
-				label: 'Activity time / Inactivity time',
+				label: 'Activity',
 				backgroundColor: 'rgb(255, 99, 132)',
 				borderColor: 'rgb(255, 99, 132)',
-				data: data.ratio10d.ratio,
+				data: data.linegraph.acts,
+				tension: 0.28
+			},
+			{
+				label: 'Inactivity',
+				backgroundColor: 'rgb(255, 99, 132)',
+				borderColor: 'rgb(255, 99, 132)',
+				data: data.linegraph.inacts,
 				tension: 0.28
 			}
 			]
@@ -173,8 +178,8 @@ export class Dashboard extends React.Component {
 				<CalendarView data={this.props.data.calendar}/>
 
 				<div className="card ratio">
-					<h2>10-Day Activity / Inactivity Ratio</h2>
-					<Graph type="line" data={this.ratio10d}/>
+					<h2> 30-day Activity / Inactivity</h2>
+					<Graph type="line" data={this.linegraph}/>
 				</div>
 
 				<div className="card doughnut">

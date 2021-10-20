@@ -72,46 +72,51 @@ function main(activity) {
         let totalInact = aSum(todayInact);
         return 100 * (totalAct / totalInact);
     })();
-    const ratio10d = (() => {
+    const linegraph = ((days) => {
         let { from, to } = (() => {
             let currDate = (new Date()).getDate();
-            let referenceDay = (new Date()).setDate(currDate - 30);
+            let referenceDay = (new Date()).setDate(currDate - days);
             return dtRangeIndex(activity, new Date(referenceDay));
         })();
         if (from == null || to == null)
             return;
-        let acts = 0;
-        let inacts = 0;
         let labels = [];
-        let ratio = [];
+        let acts = [];
+        let inacts = [];
+        let avg = [];
         let counter = 0;
+        let act = 0;
+        let inact = 0;
         for (let item of actStart.slice(from, to + 1)) {
             let dtString = (new Date(item)).toDateString();
             // ommit year
             dtString = dtString.slice(0, 10);
             let activityIndex = from + counter;
-            if (counter === 0) {
+            if (counter == 0) {
                 labels.push(dtString);
-                acts = actDuration[activityIndex];
-                inacts = inactDuration[activityIndex];
+                act = actDuration[activityIndex] / 60;
+                inact = inactDuration[activityIndex] / 60;
             }
-            if (dtString === labels[labels.length - 1]) {
-                acts += actDuration[activityIndex];
-                inacts += inactDuration[activityIndex];
+            if (dtString == labels[labels.length - 1]) {
+                act += (actDuration[activityIndex] / 60);
+                inact += (inactDuration[activityIndex] / 60);
             }
             else {
-                ratio.push(acts / inacts);
+                // ratio.push( acts / inacts )
+                acts.push(act);
+                inacts.push(inact);
                 labels.push(dtString);
-                acts = inacts = 0;
+                act = inact = 0;
             }
             counter++;
         }
-        return { ratio, labels };
-    })();
+        // return { ratio, labels }
+        return { acts, inacts, labels };
+    })(30);
     console.log("hourly activity:", hourlyActivity);
     console.log("daily activity:", dailyActivity);
     console.log("act vs inact:", actVsInact - 100);
-    console.log("10d act inact", ratio10d);
+    console.log("10d act inact", linegraph);
     const calendar = (() => {
         let day = 24 * 60 * 60 * 1000;
         let year = 364 * day;
@@ -138,7 +143,7 @@ function main(activity) {
         hourlyActivity,
         dailyActivity,
         actVsInact,
-        ratio10d,
+        linegraph,
         calendar
     };
     ReactDOM.render(React.createElement(Dashboard, { data: data }), document.getElementById('root'));
