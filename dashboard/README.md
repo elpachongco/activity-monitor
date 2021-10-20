@@ -35,14 +35,15 @@ duration for each day, from today to 365 days ago.
 
 2. Doughnut chart of today's activity vs inactivity ratio.
 
-3. Line graph. Lines: total activity per day, total Inactivity per day, 
-and their averages.
+3. Line graph. Lines: total activity per day, total Inactivity per day, total
+day length, and their averages.
 
 4. Histogram. Contains all 24 hours, shows which hours I am most active in.
 
 5. Word map of most common words encountered for window names.
 	- Loop through all window names, loop through words in window names, tally
 	total occurence for any word encountered. 
+    - Then, scale, position words to fit the container.
 
 ## TODO
 
