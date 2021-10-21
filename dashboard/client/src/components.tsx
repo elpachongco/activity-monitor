@@ -108,6 +108,9 @@ class Graph extends React.Component {
 			type: this.props.type,
 			data: this.props.data,
 			options: this.props.options
+			// options: {
+				// backgroundColor: "#ffffff"
+			// }
 		}
 		new Chart(this.canvasRef.current, config);
 	}
@@ -128,6 +131,7 @@ export class Dashboard extends React.Component {
     props: any;
 	linegraph: GraphData;
 	actVsInact: GraphData;
+	histogram: GraphData;
 
 	constructor(props: Props)
 	{
@@ -165,6 +169,20 @@ export class Dashboard extends React.Component {
 			]
 		 
 		};
+
+		this.histogram = {
+			labels: data.histogram.labels,
+			datasets: [
+			{
+				barPercentage: 1,
+				categoryPercentage: 1,
+				label: "Activity Duration",
+				data: data.histogram.data,
+				backgroundColor: '#949495',
+				borderColor: null,
+			}
+			]
+		}
 	}
 	componentDidMount() {
 	}
@@ -185,6 +203,11 @@ export class Dashboard extends React.Component {
 				<div className="card doughnut">
 					<h2>Active vs Inactive Time Today</h2>
 					<Graph type="doughnut" data={this.actVsInact}/>
+				</div>
+
+				<div className="card histogram">
+					<h2>Total active time per hour</h2>
+					<Graph type="bar" data={this.histogram} />
 				</div>
 
 			</div>

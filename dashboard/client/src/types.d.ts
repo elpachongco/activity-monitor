@@ -51,5 +51,7 @@ export interface GraphData {
 		borderColor?: string | null; 
 		data: number[]; 
 		tension?: number; 
+		barPercentage?: number; 
+		categoryPercentage?: number; 
 	}[]
 };
