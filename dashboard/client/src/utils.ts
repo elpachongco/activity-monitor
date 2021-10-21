@@ -130,6 +130,11 @@ function getDaysInWeek(): string[] {
 	return ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
 }
 
+function stringToArray(s: string, sep: string): string[]{
+	return [s]
+}
+
+
 export {
 	getDaysInWeek, 
 	getTimesInDay, 
@@ -137,5 +142,6 @@ export {
 	includes, 
 	dtRangeIndex, 
 	isTable, 
-	dayStart
+	dayStart,
+	stringToArray
 }

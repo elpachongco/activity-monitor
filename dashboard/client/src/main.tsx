@@ -1,5 +1,5 @@
 import  { getDaysInWeek, getTimesInDay, aSum, 
-    dtRangeIndex, dayStart } from "./utils.js";
+    dtRangeIndex, dayStart, stringToArray} from "./utils.js";
 import { Dashboard } from "./components.js";
 import { RawActivity, Activity, ChartData } from "./types";
 
@@ -34,6 +34,7 @@ function getActDuration(activity: RawActivity): Activity
 function main(activity: Activity): void
 {
 
+    console.log(activity["windowName"])
     let actStart = activity["actStart"]  
     let actDuration = activity["actDuration"]
     let inactDuration = activity["inactDuration"]
@@ -155,7 +156,7 @@ function main(activity: Activity): void
     console.log("10d act inact", linegraph);
     console.log("histogram", histogram);
 
-    const calendar = ( () => {
+    let calendar = ( () => {
 
         let day = 24 * 60 * 60 * 1000
         let year = 364 * day
@@ -183,13 +184,35 @@ function main(activity: Activity): void
         return {durs, labels}
     })()
 
+    let wordCloud = (() => {
+        let wordData: {
+            [key: string]: number;
+        }
+        // Loop through window names
+        activity["windowName"].map( (item, index) => {
+
+            let words: string[] 
+            // Decompose item into an array of words
+            words = stringToArray(item, " - ")
+            // Loop through words per window name
+            for (const word of words) {
+
+                // append any unique word to object
+                if (wordData[word] == null) wordData[word] = 0;
+                // For each occurence of word, add to count
+                else { wordData[word] += 1};
+            }
+        })
+    })()
+
     const data = {
         hourlyActivity,
         dailyActivity,
         actVsInact,
         linegraph,
         calendar,
-        histogram
+        histogram,
+        wordCloud
     }  
 
     ReactDOM.render(
