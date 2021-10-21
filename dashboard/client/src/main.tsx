@@ -138,10 +138,22 @@ function main(activity: Activity): void
 
     } )(30);
 
+    let histogram = (() => {
+        let labels = getTimesInDay(60); 
+        let data = Array(24).fill(0);
+
+        actDuration.map((item, index) => {
+            let hour = (new Date(actStart[index])).getHours()
+            data[hour] += item
+        })
+        return {data, labels}
+    })()
+
     console.log("hourly activity:", hourlyActivity);
     console.log("daily activity:", dailyActivity);
     console.log("act vs inact:", actVsInact - 100);
     console.log("10d act inact", linegraph);
+    console.log("histogram", histogram);
 
     const calendar = ( () => {
 
@@ -176,7 +188,8 @@ function main(activity: Activity): void
         dailyActivity,
         actVsInact,
         linegraph,
-        calendar
+        calendar,
+        histogram
     }  
 
     ReactDOM.render(
