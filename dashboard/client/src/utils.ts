@@ -6,7 +6,7 @@
 import { Activity } from "./types";
 
 /** 
- * Return an array of strings of time in a 14-hour-format day. 
+ * Return an array of strings of time in a 24-hour-format day. 
  * Useful for chart labels.
  * @param interval - interval of the times to list in minutes
  * @returns An array of strings containing time. Starts at 12:00:00 AM.
@@ -19,8 +19,6 @@ import { Activity } from "./types";
 function 
 getTimesInDay(interval: number): string[] 
 {
-
-
 	const absInterval = Math.abs(interval);
 	let hours: string[] = []
 	let dateTime = (new Date()).setHours(0, 0, 0, 0);
