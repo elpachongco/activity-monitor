@@ -177,14 +177,14 @@ function main(activity: Activity): void
         return {durs, labels}
     })()
 
-    let wordCloud = (() => {
+    let wordCloud: [[string, number]] | null = (() => {
         let wordData: {[key: string]: number;} = {}
         // Loop through window names
-        activity["windowName"].map( (item) => {
+        activity["windowName"].map( (windowName) => {
 
             let words: string[] | null
-            // Decompose item into an array of words
-            words = stringToArray(item, null) 
+            // Decompose windowName into an array of words
+            words = stringToArray(windowName) 
             if (words == null) return;
 
             // Loop through words per window name
@@ -195,7 +195,27 @@ function main(activity: Activity): void
                 else { wordData[word] += 1};
             }
         })
-        return wordData
+
+        // Sort each word by occurences 
+        if (wordData != {}) {
+            let wordDataArr: [[string, number]] = [ ['', 0] ]
+            let counter = 0
+            for (let key in wordData) {
+                // if (Object.prototype.hasOwnProperty.call(object, key)) {
+                    // const element = object[key];
+                if (counter == 0) wordDataArr = [ [key, wordData[key]] ];
+
+                wordDataArr.push( [key, wordData[key]] )
+
+                counter++
+            }
+
+            let sortedWordData = wordDataArr.sort( (first, second) => {
+                return first[1] - second[1]
+            })
+            return sortedWordData
+        }
+        return null
     })()
 
     console.log("hourly activity:", hourlyActivity)
