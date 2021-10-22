@@ -155,6 +155,24 @@ function stringToArray(s: string, re: RegExp | null = null,
 	return arr
 }
 
+/**
+ * Return a normalized array from the supplied array `arr`
+ * @param arr - Array to normalize
+ * @param multiplier - Optional multiplier 
+ * @returns - Normalized array.
+ */
+function normalize(arr: number[], multiplier=1): number[] {
+	let max = Math.max(...arr)
+	let min = Math.min(...arr)
+
+	let normalized: number[] = []
+	arr.map((item) => {
+		let norm = (item - min) / (max - min)
+		normalized.push( Math.round(norm*multiplier) )
+	})
+	return normalized
+}
+
 
 export {
 	getDaysInWeek, 
@@ -164,5 +182,6 @@ export {
 	dtRangeIndex, 
 	isTable, 
 	dayStart,
-	stringToArray
+	stringToArray,
+	normalize
 }
