@@ -3,7 +3,7 @@
  * No global variables allowed.
  */
 /**
- * Return an array of strings of time in a 14-hour-format day.
+ * Return an array of strings of time in a 24-hour-format day.
  * Useful for chart labels.
  * @param interval - interval of the times to list in minutes
  * @returns An array of strings containing time. Starts at 12:00:00 AM.
@@ -120,4 +120,41 @@ function includes(obj, arr) {
 function getDaysInWeek() {
     return ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 }
-export { getDaysInWeek, getTimesInDay, aSum, includes, dtRangeIndex, isTable, dayStart };
+/**
+ * Loop through a string and separate its parts with `sep`.
+ *
+ * @param s - string to decompose
+ * @param sep - separator, Default is space
+ * @param caseSensitive - Whether
+ * @returns array of strings from `s` but without the `sep`s
+ */
+function stringToArray(s, re = null, caseSensitive = false) {
+    if (!caseSensitive)
+        s = s.toLowerCase();
+    // Default to separating words with spaces. Unicode.
+    if (re == null) {
+        re = /([\u0000-\u0019\u0021-\uFFFF])+/gu;
+    }
+    let arr = s.match(re);
+    if (arr == null) {
+        return null;
+    }
+    return arr;
+}
+/**
+ * Return a normalized array from the supplied array `arr`
+ * @param arr - Array to normalize
+ * @param multiplier - Optional multiplier
+ * @returns - Normalized array.
+ */
+function normalize(arr, multiplier = 1) {
+    let max = Math.max(...arr);
+    let min = Math.min(...arr);
+    let normalized = [];
+    arr.map((item) => {
+        let norm = (item - min) / (max - min);
+        normalized.push(Math.round(norm * multiplier));
+    });
+    return normalized;
+}
+export { getDaysInWeek, getTimesInDay, aSum, includes, dtRangeIndex, isTable, dayStart, stringToArray, normalize };

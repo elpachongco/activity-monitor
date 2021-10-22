@@ -1,4 +1,4 @@
-// import { dayStart } from "./utils";
+import { normalize } from "./utils.js";
 function Header() {
     return (React.createElement("div", { className: "header" },
         React.createElement("p", { className: "title" }, "Activity Report \uD83C\uDF1E"),
@@ -22,18 +22,17 @@ class CalendarView extends React.Component {
     }
     render() {
         let squares = [];
-        let normalizedDurs = ((durs) => {
-            let maxDur = Math.max(...durs);
-            let minDur = Math.min(...durs);
-            let normalized = [];
-            durs.map((dur) => {
-                let norm = (dur - minDur) / (maxDur - minDur);
-                normalized.push(Math.round(norm * 100));
-            });
-            return normalized;
-        })(this.props.data.durs);
-        // let lut = ["a","b","c","d","e","f"]
-        console.log(normalizedDurs);
+        // let normalizedDurs = ((durs) => {
+        // 	let maxDur = Math.max(...durs)
+        // 	let minDur = Math.min(...durs)
+        // 	let normalized: number[] = []
+        // 	durs.map((dur) => {
+        // 		let norm = (dur - minDur) / (maxDur - minDur)
+        // 		normalized.push( Math.round(norm*100) )
+        // 	})
+        // 	return normalized
+        // })(this.props.data.durs)
+        let normalizedDurs = normalize(this.props.data.durs, 100);
         for (let i = 0; i < 364; i++) {
             // bruh
             let color = 0;
@@ -59,6 +58,27 @@ class CalendarView extends React.Component {
                 React.createElement("g", { className: "squares" }, squares))));
     }
 }
+class WordCloud extends React.Component {
+    constructor(props) {
+        super(props);
+        let tempCounts = [];
+        this.words = this.props.data.map((item) => {
+            tempCounts.push(item[1]);
+            return item[0];
+        });
+        this.counts = normalize(tempCounts);
+    }
+    render() {
+        let dataLen = this.words.length;
+        let texts = [];
+        for (let i = 0; i <= this.props.maxAmount; i++) {
+            let j = dataLen - i;
+            texts.push(React.createElement("text", { dx: "50%", x: "50%", "font-size": "25px", fill: "white" }, this.words[j]));
+        }
+        return (React.createElement("div", { className: "card wordcloud" },
+            React.createElement("svg", { viewbox: "200 -35 240 80" }, texts)));
+    }
+}
 class Graph extends React.Component {
     constructor(props) {
         super(props);
@@ -69,6 +89,9 @@ class Graph extends React.Component {
             type: this.props.type,
             data: this.props.data,
             options: this.props.options
+            // options: {
+            // backgroundColor: "#ffffff"
+            // }
         };
         new Chart(this.canvasRef.current, config);
     }
@@ -114,18 +137,37 @@ export class Dashboard extends React.Component {
                 }
             ]
         };
+        this.histogram = {
+            labels: data.histogram.labels,
+            datasets: [
+                {
+                    barPercentage: 1,
+                    categoryPercentage: 1,
+                    label: "Activity Duration",
+                    data: data.histogram.data,
+                    backgroundColor: '#949495',
+                    borderColor: null,
+                }
+            ]
+        };
+        this.calendar = data.calendar;
+        this.wordCloud = data.wordCloud;
     }
     componentDidMount() {
     }
     render() {
         return (React.createElement("div", { className: "dashboard" },
             React.createElement(Header, null),
-            React.createElement(CalendarView, { data: this.props.data.calendar }),
+            React.createElement(CalendarView, { data: this.calendar }),
             React.createElement("div", { className: "card ratio" },
                 React.createElement("h2", null, " 30-day Activity / Inactivity"),
                 React.createElement(Graph, { type: "line", data: this.linegraph })),
             React.createElement("div", { className: "card doughnut" },
                 React.createElement("h2", null, "Active vs Inactive Time Today"),
-                React.createElement(Graph, { type: "doughnut", data: this.actVsInact }))));
+                React.createElement(Graph, { type: "doughnut", data: this.actVsInact })),
+            React.createElement("div", { className: "card histogram" },
+                React.createElement("h2", null, "Total active time per hour"),
+                React.createElement(Graph, { type: "bar", data: this.histogram })),
+            React.createElement(WordCloud, { data: this.wordCloud, maxAmount: 35 })));
     }
 }

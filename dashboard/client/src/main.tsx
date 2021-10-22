@@ -34,7 +34,6 @@ function getActDuration(activity: RawActivity): Activity
 function main(activity: Activity): void
 {
 
-    console.log(activity["windowName"])
     let actStart = activity["actStart"]  
     let actDuration = activity["actDuration"]
     let inactDuration = activity["inactDuration"]
@@ -177,6 +176,7 @@ function main(activity: Activity): void
         return {durs, labels}
     })()
 
+    // Returned array is ascending
     let wordCloud: [[string, number]] | null = (() => {
         let wordData: {[key: string]: number;} = {}
         // Loop through window names
@@ -218,12 +218,12 @@ function main(activity: Activity): void
         return null
     })()
 
-    console.log("hourly activity:", hourlyActivity)
-    console.log("daily activity:", dailyActivity)
-    console.log("act vs inact:", actVsInact - 100)
-    console.log("10d act inact", linegraph)
-    console.log("histogram", histogram)
-    console.log("calendar", calendar)
+    // console.log("hourly activity:", hourlyActivity)
+    // console.log("daily activity:", dailyActivity)
+    // console.log("act vs inact:", actVsInact - 100)
+    // console.log("10d act inact", linegraph)
+    // console.log("histogram", histogram)
+    // console.log("calendar", calendar)
     console.log("word cloud", wordCloud)
 
     const data = {

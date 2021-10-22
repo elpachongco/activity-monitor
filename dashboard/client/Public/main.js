@@ -1,4 +1,4 @@
-import { getDaysInWeek, getTimesInDay, aSum, dtRangeIndex, dayStart } from "./utils.js";
+import { getDaysInWeek, getTimesInDay, aSum, dtRangeIndex, dayStart, stringToArray } from "./utils.js";
 import { Dashboard } from "./components.js";
 // let periods = ["today", "24h","3d","7d","1M","3M","6M","1Y","all"]
 // let baseUrl = 'http://localhost:5000/data/'
@@ -113,11 +113,16 @@ function main(activity) {
         // return { ratio, labels }
         return { acts, inacts, labels };
     })(30);
-    console.log("hourly activity:", hourlyActivity);
-    console.log("daily activity:", dailyActivity);
-    console.log("act vs inact:", actVsInact - 100);
-    console.log("10d act inact", linegraph);
-    const calendar = (() => {
+    let histogram = (() => {
+        let labels = getTimesInDay(60);
+        let data = Array(24).fill(0);
+        actDuration.map((item, index) => {
+            let hour = (new Date(actStart[index])).getHours();
+            data[hour] += item;
+        });
+        return { data, labels };
+    })();
+    let calendar = (() => {
         let day = 24 * 60 * 60 * 1000;
         let year = 364 * day;
         let yearAgo = dayStart().valueOf() - year;
@@ -136,15 +141,64 @@ function main(activity) {
                 }
             });
         }
-        console.log({ durs, labels });
         return { durs, labels };
     })();
+    // Returned array is ascending
+    let wordCloud = (() => {
+        let wordData = {};
+        // Loop through window names
+        activity["windowName"].map((windowName) => {
+            let words;
+            // Decompose windowName into an array of words
+            words = stringToArray(windowName);
+            if (words == null)
+                return;
+            // Loop through words per window name
+            for (const word of words) {
+                // append any unique word to object
+                if (wordData[word] == null)
+                    wordData[word] = 1;
+                // For each occurence of word, add to count
+                else {
+                    wordData[word] += 1;
+                }
+                ;
+            }
+        });
+        // Sort each word by occurences 
+        if (wordData != {}) {
+            let wordDataArr = [['', 0]];
+            let counter = 0;
+            for (let key in wordData) {
+                // if (Object.prototype.hasOwnProperty.call(object, key)) {
+                // const element = object[key];
+                if (counter == 0)
+                    wordDataArr = [[key, wordData[key]]];
+                wordDataArr.push([key, wordData[key]]);
+                counter++;
+            }
+            let sortedWordData = wordDataArr.sort((first, second) => {
+                return first[1] - second[1];
+            });
+            return sortedWordData;
+        }
+        return null;
+    })();
+    // console.log("hourly activity:", hourlyActivity)
+    // console.log("daily activity:", dailyActivity)
+    // console.log("act vs inact:", actVsInact - 100)
+    // console.log("10d act inact", linegraph)
+    // console.log("histogram", histogram)
+    // console.log("calendar", calendar)
+    console.log("word cloud", wordCloud);
     const data = {
         hourlyActivity,
         dailyActivity,
         actVsInact,
         linegraph,
-        calendar
+        calendar,
+        histogram,
+        wordCloud
     };
     ReactDOM.render(React.createElement(Dashboard, { data: data }), document.getElementById('root'));
 }

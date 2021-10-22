@@ -1,5 +1,5 @@
 import { Props, GraphData } from "./types";
-// import { dayStart } from "./utils";
+import { normalize } from "./utils.js";
 
 function Header() {
 	return (
@@ -45,21 +45,18 @@ class CalendarView extends React.Component {
 
 		let squares: any = []
 
-		let normalizedDurs = ((durs) => {
-			let maxDur = Math.max(...durs)
-			let minDur = Math.min(...durs)
+		// let normalizedDurs = ((durs) => {
+		// 	let maxDur = Math.max(...durs)
+		// 	let minDur = Math.min(...durs)
 
-			let normalized: number[] = []
-			durs.map((dur) => {
-				let norm = (dur - minDur) / (maxDur - minDur)
-				normalized.push( Math.round(norm*100) )
-			})
-			return normalized
-		})(this.props.data.durs)
-
-		// let lut = ["a","b","c","d","e","f"]
-
-		console.log(normalizedDurs)
+		// 	let normalized: number[] = []
+		// 	durs.map((dur) => {
+		// 		let norm = (dur - minDur) / (maxDur - minDur)
+		// 		normalized.push( Math.round(norm*100) )
+		// 	})
+		// 	return normalized
+		// })(this.props.data.durs)
+		let normalizedDurs = normalize(this.props.data.durs, 100)
 
 		for (let i=0; i < 364; i++) {
 
@@ -92,6 +89,53 @@ class CalendarView extends React.Component {
 	}
 }
 
+class WordCloud extends React.Component {
+    props!: {
+		data: [[string, number]] 
+		maxAmount: number
+	}; 
+
+	words: string[]
+	counts: number[] // contains values 0.0-1.0
+
+	constructor(props: Props) 
+	{
+		super(props);
+		let tempCounts: number[] = []
+		this.words = this.props.data.map((item) => {
+			tempCounts.push(item[1])
+			return item[0]
+		})
+		this.counts = normalize(tempCounts)
+	}
+
+	render() {
+		let dataLen = this.words.length
+		let texts: any = []
+		for (let i=0; i <= this.props.maxAmount; i++) {
+			let j = dataLen - i
+			texts.push(
+				<text 
+				dx={"50%"} 
+				x={"50%"}
+				font-size={"25px"}
+				fill="white"
+				> 
+					{this.words[j]}
+				</text>
+			)
+		}
+
+		return (
+			<div className="card wordcloud">
+				<svg viewbox="200 -35 240 80">
+					{texts}
+				</svg>
+			</div>	
+		)	
+		
+	}
+}
 
 class Graph extends React.Component {
     props: any;
@@ -132,6 +176,8 @@ export class Dashboard extends React.Component {
 	linegraph: GraphData;
 	actVsInact: GraphData;
 	histogram: GraphData;
+	wordCloud: any;
+	calendar: any;
 
 	constructor(props: Props)
 	{
@@ -183,6 +229,9 @@ export class Dashboard extends React.Component {
 			}
 			]
 		}
+
+		this.calendar = data.calendar
+		this.wordCloud = data.wordCloud
 	}
 	componentDidMount() {
 	}
@@ -193,7 +242,7 @@ export class Dashboard extends React.Component {
 
 				<Header />
 
-				<CalendarView data={this.props.data.calendar}/>
+				<CalendarView data={this.calendar}/>
 
 				<div className="card ratio">
 					<h2> 30-day Activity / Inactivity</h2>
@@ -209,6 +258,8 @@ export class Dashboard extends React.Component {
 					<h2>Total active time per hour</h2>
 					<Graph type="bar" data={this.histogram} />
 				</div>
+
+				<WordCloud data={this.wordCloud} maxAmount={35} />
 
 			</div>
 		);
