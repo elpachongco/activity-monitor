@@ -150,12 +150,6 @@ function main(activity: Activity): void
         return {data, labels}
     })()
 
-    console.log("hourly activity:", hourlyActivity);
-    console.log("daily activity:", dailyActivity);
-    console.log("act vs inact:", actVsInact - 100);
-    console.log("10d act inact", linegraph);
-    console.log("histogram", histogram);
-
     let calendar = ( () => {
 
         let day = 24 * 60 * 60 * 1000
@@ -180,30 +174,37 @@ function main(activity: Activity): void
 
         }
 
-        console.log( {durs, labels})
         return {durs, labels}
     })()
 
     let wordCloud = (() => {
-        let wordData: {
-            [key: string]: number;
-        }
+        let wordData: {[key: string]: number;} = {}
         // Loop through window names
-        activity["windowName"].map( (item, index) => {
+        activity["windowName"].map( (item) => {
 
-            let words: string[] 
+            let words: string[] | null
             // Decompose item into an array of words
-            words = stringToArray(item, " - ")
+            words = stringToArray(item, null) 
+            if (words == null) return;
+
             // Loop through words per window name
             for (const word of words) {
-
                 // append any unique word to object
-                if (wordData[word] == null) wordData[word] = 0;
+                if (wordData[word] == null) wordData[word] = 1;
                 // For each occurence of word, add to count
                 else { wordData[word] += 1};
             }
         })
+        return wordData
     })()
+
+    console.log("hourly activity:", hourlyActivity)
+    console.log("daily activity:", dailyActivity)
+    console.log("act vs inact:", actVsInact - 100)
+    console.log("10d act inact", linegraph)
+    console.log("histogram", histogram)
+    console.log("calendar", calendar)
+    console.log("word cloud", wordCloud)
 
     const data = {
         hourlyActivity,

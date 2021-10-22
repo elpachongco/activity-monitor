@@ -130,8 +130,29 @@ function getDaysInWeek(): string[] {
 	return ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
 }
 
-function stringToArray(s: string, sep: string): string[]{
-	return [s]
+
+
+/**
+ * Loop through a string and separate its parts with `sep`.  
+ * 
+ * @param s - string to decompose
+ * @param sep - separator, Default is space
+ * @param caseSensitive - Whether
+ * @returns array of strings from `s` but without the `sep`s
+ */
+function stringToArray(s: string, re: RegExp | null = null, 
+	caseSensitive = false): string[] | null
+{
+	if (!caseSensitive) s = s.toLowerCase();
+
+	// Default to separating words with spaces. Unicode.
+	if (re == null) { re =  /([\u0000-\u0019\u0021-\uFFFF])+/gu } 
+
+	let arr = s.match(re) 
+
+	if (arr == null) {return null}
+
+	return arr
 }
 
 
