@@ -199,7 +199,15 @@ export class Dashboard extends React.Component {
 				borderColor: 'rgb(255, 99, 132)',
 				data: data.linegraph.inacts,
 				tension: 0.28
+			},
+			{
+				label: 'Day Length',
+				backgroundColor: 'rgb(255, 99, 132)',
+				borderColor: 'rgb(255, 99, 132)',
+				data: data.linegraph.dayLen,
+				tension: 0.28
 			}
+
 			]
 		 
 		};

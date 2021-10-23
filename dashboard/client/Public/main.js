@@ -21,6 +21,7 @@ function getActDuration(activity) {
 }
 function main(activity) {
     let actStart = activity["actStart"];
+    let actEnd = activity["actEnd"];
     let actDuration = activity["actDuration"];
     let inactDuration = activity["inactDuration"];
     const hourlyActivity = {
@@ -72,7 +73,7 @@ function main(activity) {
         let totalInact = aSum(todayInact);
         return 100 * (totalAct / totalInact);
     })();
-    const linegraph = ((days) => {
+    let linegraph = ((days) => {
         let { from, to } = (() => {
             let currDate = (new Date()).getDate();
             let referenceDay = (new Date()).setDate(currDate - days);
@@ -83,10 +84,11 @@ function main(activity) {
         let labels = [];
         let acts = [];
         let inacts = [];
-        let avg = [];
+        let dayLen = [];
         let counter = 0;
         let act = 0;
         let inact = 0;
+        let len = 0;
         for (let item of actStart.slice(from, to + 1)) {
             let dtString = (new Date(item)).toDateString();
             // ommit year
@@ -96,22 +98,26 @@ function main(activity) {
                 labels.push(dtString);
                 act = actDuration[activityIndex] / 60;
                 inact = inactDuration[activityIndex] / 60;
+                len = new Date(actStart[activityIndex]).valueOf();
+                // dayLen.push(len)
             }
             if (dtString == labels[labels.length - 1]) {
                 act += (actDuration[activityIndex] / 60);
                 inact += (inactDuration[activityIndex] / 60);
             }
             else {
-                // ratio.push( acts / inacts )
                 acts.push(act);
                 inacts.push(inact);
                 labels.push(dtString);
+                len = new Date(actEnd[activityIndex - 1]).valueOf() - len;
+                dayLen.push((len / 1000) / 60);
+                len = new Date(actStart[activityIndex]).valueOf();
                 act = inact = 0;
             }
             counter++;
         }
         // return { ratio, labels }
-        return { acts, inacts, labels };
+        return { acts, inacts, labels, dayLen };
     })(30);
     let histogram = (() => {
         let labels = getTimesInDay(60);
