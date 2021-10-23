@@ -39,46 +39,46 @@ function main(activity: Activity): void
     let actDuration = activity["actDuration"]
     let inactDuration = activity["inactDuration"]
 
-    const hourlyActivity: ChartData = { 
-        labels: null,
-        data: null
-    };
-    // clone (instead of copying reference) 
-    const dailyActivity = { ...hourlyActivity };
+    // const hourlyActivity: ChartData = { 
+    //     labels: null,
+    //     data: null
+    // };
+    // // clone (instead of copying reference) 
+    // const dailyActivity = { ...hourlyActivity };
 
-    // Get most active hours in a day, todo: except today
-    [ hourlyActivity.labels, hourlyActivity.data ] = (() => {
+    // // Get most active hours in a day, todo: except today
+    // [ hourlyActivity.labels, hourlyActivity.data ] = (() => {
 
-        let labels = getTimesInDay(60);
-        let data = Array(24).fill(0, 0, 24);
-        // Loop through days in the table
-        let i = 0;
-        let currentHour;
-        for (let item of actStart) {
-            let dt = new Date(item);
-            currentHour = dt.getHours();
-            data[currentHour] += actDuration[i];
-            i++;
-        };
-        return [labels, data];
-    })();
+    //     let labels = getTimesInDay(60);
+    //     let data = Array(24).fill(0, 0, 24);
+    //     // Loop through days in the table
+    //     let i = 0;
+    //     let currentHour;
+    //     for (let item of actStart) {
+    //         let dt = new Date(item);
+    //         currentHour = dt.getHours();
+    //         data[currentHour] += actDuration[i];
+    //         i++;
+    //     };
+    //     return [labels, data];
+    // })();
 
-    // Get most active days in a week: except this week
-    [ dailyActivity.labels, dailyActivity.data ] = (() => {
+    // // Get most active days in a week: except this week
+    // [ dailyActivity.labels, dailyActivity.data ] = (() => {
 
-        let labels = getDaysInWeek();
-        let data = Array(7).fill(0);
-        // Loop through days in the table
-        let i = 0;
-        let weekDay;
-        for (let item of actStart) {
-            let dt = new Date(item);
-            weekDay = dt.getDay();
-            data[weekDay] += actDuration[i];
-            i++;
-        };
-        return [labels, data];
-    })();
+    //     let labels = getDaysInWeek();
+    //     let data = Array(7).fill(0);
+    //     // Loop through days in the table
+    //     let i = 0;
+    //     let weekDay;
+    //     for (let item of actStart) {
+    //         let dt = new Date(item);
+    //         weekDay = dt.getDay();
+    //         data[weekDay] += actDuration[i];
+    //         i++;
+    //     };
+    //     return [labels, data];
+    // })();
 
     const actVsInact = ( () => {
 
@@ -143,7 +143,7 @@ function main(activity: Activity): void
         // return { ratio, labels }
         return { acts, inacts, labels, dayLen}
 
-    } )(30);
+    } )(45);
 
     let histogram = (() => {
         let labels = getTimesInDay(60); 
@@ -227,15 +227,15 @@ function main(activity: Activity): void
 
     // console.log("hourly activity:", hourlyActivity)
     // console.log("daily activity:", dailyActivity)
-    // console.log("act vs inact:", actVsInact - 100)
-    // console.log("10d act inact", linegraph)
-    // console.log("histogram", histogram)
-    // console.log("calendar", calendar)
+    console.log("act vs inact:", actVsInact - 100)
+    console.log("10d act inact", linegraph)
+    console.log("histogram", histogram)
+    console.log("calendar", calendar)
     console.log("word cloud", wordCloud)
 
     const data = {
-        hourlyActivity,
-        dailyActivity,
+        // hourlyActivity,
+        // dailyActivity,
         actVsInact,
         linegraph,
         calendar,
