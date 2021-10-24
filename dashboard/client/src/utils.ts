@@ -162,8 +162,9 @@ function stringToArray(s: string, re: RegExp | null = null,
  * @returns - Normalized array.
  */
 function normalize(arr: number[], multiplier=1): number[] {
-	let max = Math.max(...arr)
-	let min = Math.min(...arr)
+	let max = aMax(arr)
+	let min = aMin(arr)
+
 
 	let normalized: number[] = []
 	arr.map((item) => {
@@ -173,6 +174,22 @@ function normalize(arr: number[], multiplier=1): number[] {
 	return normalized
 }
 
+/**
+ * Given an array of numbers, returns the greatest number 
+ * @param arr 
+ */
+function aMax(arr: number[]): number {
+	return Math.max(...arr)
+}
+
+/**
+ * returns the smallest number in an array
+ * @param arr 
+ * @returns 
+ */
+function aMin(arr: number[]): number {
+	return Math.min(...arr)
+}
 
 export {
 	getDaysInWeek, 

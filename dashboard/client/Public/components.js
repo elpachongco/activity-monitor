@@ -76,7 +76,7 @@ class WordCloud extends React.Component {
             texts.push(React.createElement("text", { dx: "50%", x: "50%", "font-size": "25px", fill: "white" }, this.words[j]));
         }
         return (React.createElement("div", { className: "card wordcloud" },
-            React.createElement("svg", { viewbox: "200 -35 240 80" }, texts)));
+            React.createElement("svg", null, texts)));
     }
 }
 class Graph extends React.Component {

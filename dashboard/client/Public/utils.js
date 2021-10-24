@@ -148,13 +148,19 @@ function stringToArray(s, re = null, caseSensitive = false) {
  * @returns - Normalized array.
  */
 function normalize(arr, multiplier = 1) {
-    let max = Math.max(...arr);
-    let min = Math.min(...arr);
+    let max = aMax(arr);
+    let min = aMin(arr);
     let normalized = [];
     arr.map((item) => {
         let norm = (item - min) / (max - min);
         normalized.push(Math.round(norm * multiplier));
     });
     return normalized;
+}
+function aMax(arr) {
+    return Math.max(...arr);
+}
+function aMin(arr) {
+    return Math.min(...arr);
 }
 export { getDaysInWeek, getTimesInDay, aSum, includes, dtRangeIndex, isTable, dayStart, stringToArray, normalize };

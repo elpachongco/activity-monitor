@@ -128,7 +128,8 @@ class WordCloud extends React.Component {
 
 		return (
 			<div className="card wordcloud">
-				<svg viewbox="200 -35 240 80">
+				{/* <svg viewbox="200 -35 240 80"> */}
+				<svg>
 					{texts}
 				</svg>
 			</div>	
