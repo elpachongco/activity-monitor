@@ -49,10 +49,10 @@ def getActivityInfo():
 	# Returns a csv reader object
 	readCSV = csv.reader(processNameCSV)   
 	listCSV = list(readCSV)   
+
 	# Position of the program name in the list 
 	# I wouldn't consider this portable so this might change.
 	exeName = listCSV[10][0]   
-	print(exeName)
 
 	# Return the window name, & process name running the window.
 	return titleBuffer.value, exeName 
@@ -186,5 +186,3 @@ class Tracker():
 		# Converts all values for all keys to string.
 		for key in activityDict:
 			activityDict[key] = str(activityDict[key])
-
-
