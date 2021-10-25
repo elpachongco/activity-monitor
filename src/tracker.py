@@ -40,8 +40,11 @@ def getActivityInfo():
 	
 	# Run command 'tasklist', lookup which program has the pid
 	# and store CSV output to var
-	processNameCSV = os.popen(f"tasklist /FI \
-					\"pid eq {pid.value}\" /FO CSV").read()  
+	tasklist = os.popen(f"tasklist /FI \
+					\"pid eq {pid.value}\" /FO CSV")
+
+	processNameCSV = tasklist.read()  
+	tasklist.close()
 
 	# Returns a csv reader object
 	readCSV = csv.reader(processNameCSV)   
@@ -49,6 +52,7 @@ def getActivityInfo():
 	# Position of the program name in the list 
 	# I wouldn't consider this portable so this might change.
 	exeName = listCSV[10][0]   
+	print(exeName)
 
 	# Return the window name, & process name running the window.
 	return titleBuffer.value, exeName 
