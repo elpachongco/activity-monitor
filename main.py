@@ -10,18 +10,21 @@ environ["ACTIVITY_DB"] = str(Path.cwd() / "activity.db")
 uploader = Uploader(environ["ACTIVITY_DB"])
 tracker = Tracker()
 
-while True:
+def main():
+	while True:
+		# call method: tracker.track()
+		# ARGS: 
+		# RETURN: Py Dictionary with String values, and keys: 
+		#	{"processName": , "windowName": "actStart": ,
+		#	"actEnd": , "inactDuration":}
+		activity = tracker.track()
 
-	# call method: tracker.track()
-	# ARGS: 
-	# RETURN: Py Dictionary with String values, and keys: 
-	#	{"processName": , "windowName": "actStart": ,
-	#	"actEnd": , "inactDuration":}
-	activity = tracker.track()
+		# Call method: None uploader.upload()
+		# ARGS: Python Dictionary returned by tracker.track(). Must have keys:
+		# 		"procesName", "windowName", "actStart", "actEnd", "inactDuration".
+		#		All values must be a string.
+		# RETURN: None
+		uploader.upload(activity)
 
-	# Call method: None uploader.upload()
-	# ARGS: Python Dictionary returned by tracker.track(). Must have keys:
-	# 		"procesName", "windowName", "actStart", "actEnd", "inactDuration".
-	#		All values must be a string.
-	# RETURN: None
-	uploader.upload(activity)
+if __name__ == "__main__":
+	main()
