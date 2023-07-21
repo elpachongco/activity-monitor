@@ -75,3 +75,10 @@ See [docs](./docs/).
 - Documentation
 - Tests
 - Port to Linux
+
+## Formatting
+
+Use `black`.
+
+`poetry run black src/`
+
