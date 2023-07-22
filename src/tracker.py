@@ -2,6 +2,7 @@ import ctypes, time, os, csv, logging, sys
 from datetime import datetime
 import platform
 import subprocess
+import json
 
 if platform.system() == "Windows":
     # ctypes handles the Windows-specific functions
@@ -69,6 +70,10 @@ def getActivityInfo(os="Windows"):
             text=True,
         )
 
+        # pid is blank if no window is focused.
+        if result.stdout == '':
+            return '', ''
+
         proc = int(result.stdout)
 
         result = subprocess.run(
@@ -85,6 +90,7 @@ def getActivityInfo(os="Windows"):
         )
 
         windowName = result.stdout
+        #print(json.dumps( {"result": [windowName, processName]}, indent=2))
         return windowName, processName
 
 
@@ -108,17 +114,22 @@ def getUserIsActive(lastInputInfo, minGap=800, os="Windows"):
 
     if os == "Linux":
         # Returns: 234324.2 234234.3
-        result = subprocess.run(["cat", "/proc/uptime"], capture_output=True, text=True)
+        # See proc man page for /proc/uptime
+        # result = subprocess.run(["cat", "/proc/uptime"], capture_output=True, text=True)
         # Get first item only
-        currentTimeMs = float(result.stdout.split(" ")[0]) * 1000
-        timeGap = currentTimeMs - 0
+        # currentTimeMs = float(result.stdout.split(" ")[0]) * 1000
 
         result = subprocess.run(
-            ["timeout", str(minGap / 1000), "xinput", "test-xi2", "--root"],
+            # Implementation depends on this command: 
+            # timeout .1 xinput test-xi2 --root
+            # If an input is made, EVENT is present.
+
+            # timeout should be < mingap
+            ["timeout", str((minGap / 1000)/2), "xinput", "test-xi2", "--root"],
             capture_output=True,
             text=True,
         )
-        print("EVENT" in result.stdout)
+        #print( "EVENT" in result.stdout)
         return "EVENT" in result.stdout
 
 
