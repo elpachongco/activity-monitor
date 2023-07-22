@@ -74,7 +74,7 @@ See [docs](./docs/).
       using a command line tool which I am not sure exists on older platforms. 
 - Documentation
 - Tests
-- Port to Linux
+- ~~Port to Linux~~ Done!
 
 ## Formatting
 

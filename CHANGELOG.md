@@ -1,5 +1,17 @@
 # Changelog
 
+## 2023-07-22
+
+Finally, I have some time to improve this project.
+
+- Initial port to linux. 
+- X compositor support for now. Wayland support soon.
+
+Next goals would be: 
+
+- Dashboard revamp 
+- REST API.
+
 ## 2021-09-10
 
 This version brings significant changes. My two goals for this update are
@@ -22,7 +34,7 @@ program into other operating systems.
         gathered. I decided to turn the project into just an
         activity tracker that is designed to allow other projects to access its
         data. One can create a dashboard by just accessing the sqlite db.
-        
+
 - Better file structure 
 
 - More modularity. 
@@ -35,8 +47,6 @@ program into other operating systems.
 
 ## 2021-04-??
 
-Project create. This version used google sheets as a database which made it easy
+Project creation. This version used google sheets as a database which made it easy
 to create a dashboard, and to make it available to other platforms because 
 accessing the data required only a browser. 
-
-
