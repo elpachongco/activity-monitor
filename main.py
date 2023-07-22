@@ -26,5 +26,8 @@ def main():
 		# RETURN: None
 		uploader.upload(activity)
 
+		# No limiter for while loop, since tracker.track() is blocking and will
+		# stop the loop while user is focused on the same window.
+
 if __name__ == "__main__":
 	main()
