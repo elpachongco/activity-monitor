@@ -106,23 +106,23 @@ def filter_activities():
           example:
                 fields=actStart,actEnd,inactDuration
 
-        - name: timestamp_from
+        - name: timestamp-from
           description: ISO8601 timestamp to retrieve data from or "now".
           in: query
           type: string
           default:
                 'now'
           example:
-                '2023-07-23T11:36:01.111'
+                timestamp-from=2023-07-23T11:36:01.111
 
-        - name: timestamp_to
+        - name: timestamp-to
           description: ISO8601 timestamp to retrieve data to  or "now".
           in: query
           type: string
           default:
                 'now'
           example:
-                '2023-07-23T11:36:01.111'
+                timestamp-to=2023-07-23T11:36:01.111
 
         - name: limit
           description: limit number of results
@@ -173,8 +173,8 @@ def filter_activities():
     orderBy = request.args.get("order-by") or "actStart"
     order = request.args.get("order") or "ascending"
     fields = request.args.get("fields") or ",".join(TABLE_COLUMNS)
-    timestampFrom = request.args.get("timestamp_from") or "now"
-    timestampTo = request.args.get("timestamp_to") or "now"
+    timestampFrom = request.args.get("timestamp-from") or "now"
+    timestampTo = request.args.get("timestamp-to") or "now"
     limit = request.args.get("limit") or "1"
 
     # Separate fields by comma, turn it to array
