@@ -1,6 +1,7 @@
 from flask import Flask, request, redirect
 import sqlite3
 from datetime import datetime
+from flasgger import Swagger
 
 # This program receives GET requests from the frontend, queries the database
 # then responds in JSON (python dictionary)
@@ -12,6 +13,11 @@ from datetime import datetime
 # $env:FLASK_ENV="development"
 
 app = Flask(__name__, static_folder="./Public/", static_url_path="")
+
+# Setup swagger as the documentation generator.
+# Documentation @ /apidocs
+app.config["SWAGGER"] = {"title": "Activity Monitor API"}
+swagger = Swagger(app)
 
 # Path to sqlite database
 dbPath = "../../activity.db"
@@ -62,68 +68,107 @@ def activities():
 
 @app.route("/api/activities/filter", methods=["GET"])
 def filter_activities():
-    """
-    Get and filter activities from database.
-    query params:
-        order-by:
-            default value:
+    """Get and filter activities from database.
+    ---
+    parameters:
+        - name: order-by
+          description: Column to base ordering on
+          in: query
+          type: string
+          enum: [actStart, actEnd, inactDuration, windowName, processName]
+          default:
                 actStart
-            possible values:
-                actStart, actEnd, inactDuration, windowName, processName
-
-        order:
-            default value:
-                ascending
-            possible values:
-                ascending, descending
-
-        fields:
-            Which fields to return
-
-            default value:
-                actStart,actEnd,inactDuration,windowName,processName
-            possible values:
-                any of the ff: actStart, actEnd, inactDuration, windowName, processName
-                if one or more, join with values with comma
+          example:
                 fields=actStart,actEnd,inactDuration
 
-        timestamp_from:
-            date and time to retrieve data from
+        - name: order
+          description: Type of ordering
+          in: query
+          type: string
+          enum: [ascending, descending]
+          default:
+            ascending
+          example:
+                fields=actStart,actEnd,inactDuration
 
-            default value:
+        - name: fields
+          description: Which fields to return
+          in: query
+          type: array
+          items:
+            type: string
+          minItems: 0
+          maxItems: 5
+          uniqueItems: true
+          enum: [actStart,actEnd,inactDuration,windowName,processName]
+          default:
+                [actStart,actEnd,inactDuration,windowName,processName]
+          example:
+                fields=actStart,actEnd,inactDuration
+
+        - name: timestamp_from
+          description: ISO8601 timestamp to retrieve data from or "now".
+          in: query
+          type: string
+          default:
                 'now'
+          example:
+                '2023-07-23T11:36:01.111'
 
-            possible values:
-                iso8601 timestamp
-                2023-07-23T11:36:01.111
-
-        timestamp_to:
-            date and time to retrieve data to
-
-            default value:
+        - name: timestamp_to
+          description: ISO8601 timestamp to retrieve data to  or "now".
+          in: query
+          type: string
+          default:
                 'now'
+          example:
+                '2023-07-23T11:36:01.111'
 
-            possible values:
-                iso8601 timestamp
-                2023-07-23T11:36:01.111
-
-        limit:
-            limit number of results
-
-            default value:
+        - name: limit
+          description: limit number of results
+          in: query
+          type: integer
+          default:
                 1
-            possible values:
-                uint
+          example:
+                limit=1
 
-    returns:
-    {
-        "error": string. '' or '<message>'
-        "result": string
-    }, status code, headers
+    definitions:
+        SuccessfulResponse:
+            type: object
+            properties:
+                error:
+                    type: string
+                result:
+                    type: object
+                    properties:
+                        requested_field:
+                            type: array
+                            items:
+                                type: string
+
+        ErrorResponse:
+            type: object
+            properties:
+                error:
+                    type: string
+                result:
+                    type: object
+
+    responses:
+        200:
+            description: Successful request. Error property will contain a blank string `\"\"`.
+            schema:
+                $ref: '#/definitions/SuccessfulResponse'
+
+        400:
+            description: Bad request. Error property will contain a message string.
+            schema:
+                $ref: '#/definitions/ErrorResponse'
     """
+
     headers = {"Access-Control-Allow-Origin": "*"}
 
-    print("laskjdf", len(request.args))
     # Get query params. If not present, use default.
     orderBy = request.args.get("order-by") or "actStart"
     order = request.args.get("order") or "ascending"
@@ -135,11 +180,7 @@ def filter_activities():
     # Separate fields by comma, turn it to array
     fieldsList = fields.split(",")
 
-    # make all items of fieldsList unique with set
-    # See if all the items of fieldsList are all TABLE_COLUMNS
-    if not len(set(fieldsList).difference(TABLE_COLUMNS)) == 0:
-        return {"error": "bad query parameter: `fields`"}, 400, headers
-
+    # ---------- Query param validation
     if orderBy not in TABLE_COLUMNS:
         return {"error": "bad query parameter: `orderBy`"}, 400, headers
 
@@ -150,6 +191,11 @@ def filter_activities():
     else:
         return {"error": "bad query parameter: `order`."}, 400, headers
 
+    # make all items of fieldsList unique with set
+    # See if all the items of fieldsList are all TABLE_COLUMNS
+    if not len(set(fieldsList).difference(TABLE_COLUMNS)) == 0:
+        return {"error": "bad query parameter: `fields`"}, 400, headers
+
     if not limit.isdigit():
         return {"error": "bad query parameter: `limit`."}, 400, headers
 
@@ -158,6 +204,7 @@ def filter_activities():
 
     if not isTimestampValid(timestampTo):
         return {"error": "bad query parameter: `to`."}, 400, headers
+    # ---------- xxxx
 
     activityData = db.execute(
         """
@@ -166,8 +213,7 @@ def filter_activities():
         /* see https://www.sqlite.org/lang_datefunc.html */
         WHERE actStart >= DATETIME('{tsFrom}') AND actStart <= DATETIME('{tsTo}')
         ORDER BY {orderBy} {order}
-        LIMIT {limit}
-        ;
+        LIMIT {limit};
         """.format(
             fields=fields,
             orderBy=orderBy,
@@ -268,8 +314,9 @@ def parsePeriod(period):
     else:
         return "'start of day'"
 
+
 def isTimestampValid(timestamp):
-    if timestamp == 'now':
+    if timestamp == "now":
         return True
     else:
         # A non try/except way would be better...
@@ -278,5 +325,3 @@ def isTimestampValid(timestamp):
             return True
         except:
             return False
-
-

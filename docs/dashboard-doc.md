@@ -23,3 +23,8 @@ This will start a simple flask server that will serve the index.html files on
 The page will be accessible to all devices in the network. To disable this,
 remove the items `"--host"`, and `"0.0.0.0"` from the list `runFlaskCmd` on
 `../dashboard/run.py`.
+
+## Api documentation
+
+The api will be available at `localhost:<port>/apidocs` if the flask server is running.
+See `../dashboard/client/app.py`.

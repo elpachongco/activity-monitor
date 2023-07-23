@@ -19,7 +19,7 @@ pipenv sync
 ```
 You can now run `main.py`.
 
-### Running the program on startups automatically
+### Running the program on startups automatically (Windows)
 
 Make a windows shortcut of the `startup.bat` (right
 click -> send to -> desktop -> create shortcut), then paste that shortcut (which
@@ -27,6 +27,10 @@ will be on Desktop) to %appdata%\Microsoft\Windows\Start Menu\Programs\Startup
 (This can easily be accessed by pressing the `Windows Key + r` then entering
 `shell:startup`). A file explorer window will show up. Paste the shortcut. 
 The program will now run every startup.
+
+### Running the program on startups automatically (Linux)
+
+crontab -e
 
 ## File Structure 
 
