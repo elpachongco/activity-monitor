@@ -79,7 +79,7 @@ def filter_activities():
           default:
                 actStart
           example:
-                fields=actStart,actEnd,inactDuration
+                order-by=inactDuration
 
         - name: order
           description: Type of ordering
@@ -89,7 +89,7 @@ def filter_activities():
           default:
             ascending
           example:
-                fields=actStart,actEnd,inactDuration
+                order=ascending
 
         - name: fields
           description: Which fields to return
@@ -106,23 +106,23 @@ def filter_activities():
           example:
                 fields=actStart,actEnd,inactDuration
 
-        - name: timestamp-from
+        - name: timestamp-start
           description: ISO8601 timestamp to retrieve data from or "now".
           in: query
           type: string
           default:
                 'now'
           example:
-                timestamp-from=2023-07-23T11:36:01.111
+                timestamp-start=2023-07-23T11:36:01.111
 
-        - name: timestamp-to
+        - name: timestamp-end
           description: ISO8601 timestamp to retrieve data to  or "now".
           in: query
           type: string
           default:
                 'now'
           example:
-                timestamp-to=2023-07-23T11:36:01.111
+                timestamp-end=2023-07-23T11:36:01.111
 
         - name: limit
           description: limit number of results
@@ -173,8 +173,8 @@ def filter_activities():
     orderBy = request.args.get("order-by") or "actStart"
     order = request.args.get("order") or "ascending"
     fields = request.args.get("fields") or ",".join(TABLE_COLUMNS)
-    timestampFrom = request.args.get("timestamp-from") or "now"
-    timestampTo = request.args.get("timestamp-to") or "now"
+    timestampFrom = request.args.get("timestamp-start") or "now"
+    timestampTo = request.args.get("timestamp-end") or "now"
     limit = request.args.get("limit") or "1"
 
     # Separate fields by comma, turn it to array
@@ -182,28 +182,58 @@ def filter_activities():
 
     # ---------- Query param validation
     if orderBy not in TABLE_COLUMNS:
-        return {"error": "bad query parameter: `orderBy`"}, 400, headers
+        return (
+            {
+                "error": f"Query parameter: `orderBy` should be one of TABLE_COLUMNS. TABLE_COLUMNS: {TABLE_COLUMNS}"
+            },
+            400,
+            headers,
+        )
 
     if order == "ascending":
         order = "ASC"
     elif order == "descending":
         order = "DESC"
     else:
-        return {"error": "bad query parameter: `order`."}, 400, headers
+        return (
+            {
+                "error": "Query parameter: `order` should either be 'ascending' or 'descending'."
+            },
+            400,
+            headers,
+        )
 
     # make all items of fieldsList unique with set
     # See if all the items of fieldsList are all TABLE_COLUMNS
     if not len(set(fieldsList).difference(TABLE_COLUMNS)) == 0:
-        return {"error": "bad query parameter: `fields`"}, 400, headers
+        return (
+            {
+                "error": f"Query parameter: `fields` should contain any of TABLE_COLUMNS only. TABLE_COLUMNS: {TABLE_COLUMNS}"
+            },
+            400,
+            headers,
+        )
 
     if not limit.isdigit():
-        return {"error": "bad query parameter: `limit`."}, 400, headers
+        return {"error": f"Query parameter: `limit` should be a digit."}, 400, headers
 
     if not isTimestampValid(timestampFrom):
-        return {"error": "bad query parameter: `from`."}, 400, headers
+        return (
+            {
+                "error": "Query parameter: `timestamp-start` should be 'now' or an IS08601 timestamp with the format %Y-%m-%dT%H:%M:%S.%f."
+            },
+            400,
+            headers,
+        )
 
     if not isTimestampValid(timestampTo):
-        return {"error": "bad query parameter: `to`."}, 400, headers
+        return (
+            {
+                "error": "Query parameter: `timestamp-end` should be 'now' or an IS08601 timestamp with the format %Y-%m-%dT%H:%M:%S.%f."
+            },
+            400,
+            headers,
+        )
     # ---------- xxxx
 
     activityData = db.execute(
