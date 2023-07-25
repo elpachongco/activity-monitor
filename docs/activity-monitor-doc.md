@@ -83,3 +83,9 @@ changes whenever the `Uploader.upload()` called.
 
 - Configuration system
 - Mechanism against programs that change window names too frequently.
+
+## Formatting
+
+Use `black` to format python files before commit.
+Install: `poetry add black`
+Run: `poetry run black <source code>`.

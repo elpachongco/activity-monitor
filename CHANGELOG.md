@@ -1,5 +1,19 @@
 # Changelog
 
+## 2023-07-24
+
+- REST API is here 
+    - SWAGGER api documentation at /apidoc
+    - More endpoints soon
+- Logging setup
+    - Rotating logs for main.py and flask server
+
+Next goals would be: 
+
+- Dashboard revamp 
+- Tests
+- Additional API endpoints
+
 ## 2023-07-22
 
 Finally, I have some time to improve this project.
@@ -50,3 +64,7 @@ program into other operating systems.
 Project creation. This version used google sheets as a database which made it easy
 to create a dashboard, and to make it available to other platforms because 
 accessing the data required only a browser. 
+
+![old-dashboard](img/old-dashboard.png)
+![old-dashboard-2](img/old-dashboard-2.png)
+
