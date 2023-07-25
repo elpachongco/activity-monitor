@@ -4,6 +4,8 @@ import platform
 import subprocess
 
 import tracemalloc
+logger = logging.getLogger()
+
 if platform.system() == "Windows":
     # ctypes handles the Windows-specific functions
     from ctypes import wintypes, windll, create_unicode_buffer, byref
@@ -92,7 +94,7 @@ def getActivityInfo(os):
         windowName = result.stdout.strip("\n")
         return windowName, processName
 
-    logging.error("OS is Unknown: %s", os)
+    logger.error("OS is Unknown: %s", os)
     raise Exception("OS is Unknown: %s", os)
 
 
@@ -135,7 +137,7 @@ def getUserIsActive(lastInputInfo, os, minGap=800):
         # print( "EVENT" in result.stdout)
         return "EVENT" in result.stdout
 
-    logging.error("OS is Unknown: %s")
+    logger.error("OS is Unknown: %s")
     raise Exception("OS is Unknown: %s", os)
 
 class Tracker:
@@ -153,7 +155,7 @@ class Tracker:
 
     def __init__(self):
         self.os = platform.system()
-        logging.info("OS detected: %s", self.os)
+        logger.info("OS detected: %s", self.os)
 
         if self.os == "Windows":
             self.lastInputInfo = LASTINPUTINFO()

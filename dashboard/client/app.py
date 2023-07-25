@@ -11,9 +11,19 @@ import logging
 # running (windows):
 # $ pipenv run flask run --host=0.0.0.0
 # Also set flask to dev mode (powershell) to enable hot reload
-# $env:FLASK_ENV="development"
+# $env:FLASK_ENV="development" or use --debug arg 
+from logging.handlers import TimedRotatingFileHandler
+from logging import Formatter
 
-logging.basicConfig(filename='../../server.log', level=logging.DEBUG)
+format = "%(asctime)s %(filename)s: %(levelname)s %(message)s"
+formatter = Formatter(format)
+level = logging.DEBUG
+
+logger = logging.getLogger()
+logger.setLevel(level)
+handler = TimedRotatingFileHandler(filename='../../logs/server.log', when='H', interval=48, backupCount=3)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 app = Flask(__name__, static_folder="./Public/", static_url_path="")
 

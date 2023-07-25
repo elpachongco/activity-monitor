@@ -1,10 +1,12 @@
 import sqlite3
+import logging
 
 # This program accepts info about the activity then uploads it to an sqlite3 db
 
+logger = logging.getLogger()
 
 class Uploader:
-    tableName = "activity_data"
+    TABLENAME = "activity_data"
 
     # Min amount of items to upload. If this number hasn't
     # been reached, upload() saves the item into a list
@@ -24,11 +26,11 @@ class Uploader:
         self.sqlCursor.execute(
             """
 
-            CREATE TABLE IF NOT EXISTS {tn} 
+            CREATE TABLE IF NOT EXISTS {tn}
             ({colA}, {colB}, {colC}, {colD}, {colE})
 
             """.format(
-                tn=self.tableName,
+                tn=self.TABLENAME,
                 colA="actStart TEXT",
                 colB="actEnd TEXT",
                 colC="inactDuration REAL",
@@ -47,7 +49,7 @@ class Uploader:
             :windowName, :processName)
 
             """.format(
-                tn=self.tableName
+                tn=self.TABLENAME
             ),
             activityDict,
         )

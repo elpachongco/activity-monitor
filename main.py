@@ -7,15 +7,26 @@ from os import environ
 from pathlib import Path
 import logging
 
-logging.basicConfig(filename='server.log', level=logging.DEBUG, format="%(asctime)s %(filename)s: %(levelname)s %(message)s")
+from logging.handlers import TimedRotatingFileHandler
+from logging import Formatter
+
+format = "%(asctime)s %(filename)s: %(levelname)s %(message)s"
+formatter = Formatter(format)
+level = logging.DEBUG
+
+logger = logging.getLogger()
+logger.setLevel(level)
+handler = TimedRotatingFileHandler(filename='logs/tracker.log', when='H', interval=48, backupCount=3)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 environ["ACTIVITY_DB"] = str(Path.cwd() / "activity.db")
 tracker = Tracker()
-logging.info("Setup done")
-logging.info("Activity Database at %s", environ["ACTIVITY_DB"])
+logger.info("Setup done")
+logger.info("Activity Database at %s", environ["ACTIVITY_DB"])
 
 def main():
-	logging.info("ran as application, main function loop started")
+	logger.info("ran as application, main function loop started")
 	while True:
 		# call method: tracker.track()
 		# ARGS: 
