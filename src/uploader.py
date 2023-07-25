@@ -1,5 +1,4 @@
 import sqlite3
-from os import getenv, environ
 
 # This program accepts info about the activity then uploads it to an sqlite3 db
 
@@ -18,10 +17,11 @@ class Uploader:
         # Table will have column name same as
         # Dictionary keys
 
-        self.dbPath = dbPath
-        self.sqlConnection = sqlite3.connect(self.dbPath)
+        self.__dbPath = dbPath
+        self.sqlConnection = sqlite3.connect(self.__dbPath)
+        self.sqlCursor = self.sqlConnection.cursor()
 
-        self.sqlConnection.execute(
+        self.sqlCursor.execute(
             """
 
             CREATE TABLE IF NOT EXISTS {tn} 
@@ -40,7 +40,7 @@ class Uploader:
         self.sqlConnection.commit()
 
     def upload(self, activityDict):
-        self.sqlConnection.execute(
+        self.sqlCursor.execute(
             """
 
             INSERT INTO {tn} VALUES (:actStart, :actEnd,  :inactDuration,
@@ -53,3 +53,14 @@ class Uploader:
         )
 
         self.sqlConnection.commit()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, ext_type, exc_value, traceback):
+        self.sqlCursor.close()
+        if isinstance(exc_value, Exception):
+            self.sqlConnection.rollback()
+        else:
+            self.sqlConnection.commit()
+        self.sqlConnection.close()

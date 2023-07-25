@@ -2,6 +2,7 @@ from flask import Flask, request, redirect
 import sqlite3
 from datetime import datetime
 from flasgger import Swagger
+import logging
 
 # This program receives GET requests from the frontend, queries the database
 # then responds in JSON (python dictionary)
@@ -11,6 +12,8 @@ from flasgger import Swagger
 # $ pipenv run flask run --host=0.0.0.0
 # Also set flask to dev mode (powershell) to enable hot reload
 # $env:FLASK_ENV="development"
+
+logging.basicConfig(filename='../../server.log', level=logging.DEBUG)
 
 app = Flask(__name__, static_folder="./Public/", static_url_path="")
 

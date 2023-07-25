@@ -1,9 +1,9 @@
-import ctypes, time, os, csv, logging, sys
+import ctypes, time, csv, logging
 from datetime import datetime
 import platform
 import subprocess
-import json
 
+import tracemalloc
 if platform.system() == "Windows":
     # ctypes handles the Windows-specific functions
     from ctypes import wintypes, windll, create_unicode_buffer, byref
@@ -14,7 +14,7 @@ class LASTINPUTINFO(ctypes.Structure):
     _fields_ = [("cbSize", ctypes.c_ulong), ("dwTime", ctypes.c_ulong)]
 
 
-def getActivityInfo(os="Windows"):
+def getActivityInfo(os):
     # Get window name and process name of current foreground window
     # Makes use of windows API
     # RETURNS: str name of window, str name of process
@@ -65,41 +65,45 @@ def getActivityInfo(os="Windows"):
 
     if os == "Linux":
         result = subprocess.run(
-            ["xdotool", "getwindowfocus", "getwindowpid"],
+            ["timeout", "1", "xdotool", "getwindowfocus", "getwindowpid"],
             capture_output=True,
             text=True,
         )
 
         # pid is blank if no window is focused.
-        if result.stdout == '':
-            return '', ''
+        if result.stdout == "":
+            return "", ""
 
         proc = int(result.stdout)
 
         result = subprocess.run(
-            ["ps", "-p", str(proc), "-o", "comm="],
+            ["timeout", "1", "ps", "-p", str(proc), "-o", "comm="],
             capture_output=True,
             text=True,
         )
-        processName = result.stdout
+        processName = result.stdout.strip("\n")
 
         result = subprocess.run(
-            ["xdotool", "getwindowfocus", "getwindowname"],
+            ["timeout", "1", "xdotool", "getwindowfocus", "getwindowname"],
             capture_output=True,
             text=True,
         )
 
-        windowName = result.stdout
-        #print(json.dumps( {"result": [windowName, processName]}, indent=2))
+        windowName = result.stdout.strip("\n")
         return windowName, processName
 
+    logging.error("OS is Unknown: %s", os)
+    raise Exception("OS is Unknown: %s", os)
 
-def getUserIsActive(lastInputInfo, minGap=800, os="Windows"):
+
+def getUserIsActive(lastInputInfo, os, minGap=800):
     # Compares gap between last time of input from mouse or kb and current time.
     # ARGS:
     # 	lastInputInfo -> Instance of class LASTINPUTINFO(ctypes.Structure),
     # 	minGap -> Int, minimum time between activity in mseconds
     # 	os -> string, the platform the user is using
+
+    ### TODO: Fix minGap linux implementation.
 
     # Store last input time to class
     if os == "Windows":
@@ -120,29 +124,22 @@ def getUserIsActive(lastInputInfo, minGap=800, os="Windows"):
         # currentTimeMs = float(result.stdout.split(" ")[0]) * 1000
 
         result = subprocess.run(
-            # Implementation depends on this command: 
+            # Implementation depends on this command:
             # timeout .1 xinput test-xi2 --root
             # If an input is made, EVENT is present.
-
             # timeout should be < mingap
-            ["timeout", str((minGap / 1000)/2), "xinput", "test-xi2", "--root"],
+            ["timeout", str((minGap / 1000) / 2), "xinput", "test-xi2", "--root"],
             capture_output=True,
             text=True,
         )
-        #print( "EVENT" in result.stdout)
+        # print( "EVENT" in result.stdout)
         return "EVENT" in result.stdout
 
+    logging.error("OS is Unknown: %s")
+    raise Exception("OS is Unknown: %s", os)
 
 class Tracker:
     # Get foreground window, track inactivity. Return when window changes
-
-    activity = {
-        "actStart": None,
-        "actEnd": None,
-        "processName": "",
-        "windowName": "",
-        "inactDuration": 0.0,
-    }
 
     # Activity will not be considered unless the user
     # spent time greater than this value.
@@ -150,97 +147,120 @@ class Tracker:
 
     # Min time for each while loop. Helps in lowering
     # memory by reducing API calls to the OS.
-    WHILEINTERVAL = 0.2  # Seconds
+    WHILEINTERVAL = 0.5  # Seconds
+
+    lastInputInfo = None
 
     def __init__(self):
         self.os = platform.system()
-        self.lastInputInfo = LASTINPUTINFO()
-        self.lastInputInfo.cbSize = ctypes.sizeof(LASTINPUTINFO)
+        logging.info("OS detected: %s", self.os)
+
+        if self.os == "Windows":
+            self.lastInputInfo = LASTINPUTINFO()
+            self.lastInputInfo.cbSize = ctypes.sizeof(LASTINPUTINFO)
 
     def track(self):
+        """
+        Start a loop tracking the current activity
+
+        returns:
+            activity = {
+                "actStart": None,
+                "actEnd": None,
+                "processName": "",
+                "windowName": "",
+                "inactDuration": 0.0,
+            }
+       """
+        activity = {
+            "actStart": None,
+            "actEnd": None,
+            "processName": "",
+            "windowName": "",
+            "inactDuration": 0.0,
+        }
+
         currentWindow = ""
         currentProcess = ""
-        tWindowDuration = 0
-        userFromSleep = False  # User returned from inactivity
+        idle = False  # User returned from inactivity
 
         # Every time user gets inactive, add current time to start.
         # if inactivity ends, add current time to end.
-        inactiveDur = {"start": 0, "end": 0}
+        inactDurationStart = 0.0
+        inactDurationEnd = 0.0
 
-        self.activity["actStart"] = datetime.now()
+        activity["actStart"] = datetime.now()
 
-        while True:
-            # Instead of a while True, while currentWindow
-            # == self.activity["windowName"] might be possible
-
+        while currentWindow == activity["windowName"]:
             time.sleep(self.WHILEINTERVAL)
 
             # Detects user Inactivity
-            userIsActive = getUserIsActive(self.lastInputInfo, os=self.os)
-            currentWindow, currentProcess = getActivityInfo(os=self.os)
+            userIsActive = getUserIsActive(self.lastInputInfo, self.os)
+            currentWindow, currentProcess = getActivityInfo(self.os)
 
-            # Logs time of user inactivity
+            # When track() is ran for the first time, windowName, procesName is ""
+            # Set current window as windowname, and proceed to next loop cycle.
+            if activity["windowName"] == "":
+                activity["windowName"] = currentWindow
+                activity["processName"] = currentProcess
+                continue
+
             if not userIsActive:
-                if not userFromSleep:
-                    inactiveDur["start"] += time.time()
-                    userFromSleep = True
+                if not idle:
+                    inactDurationStart += time.time()
+                    idle = True
             else:
-                if userFromSleep:
-                    # when user awakes, inactivity ends
-                    inactiveDur["end"] += time.time()
-                    # User should first be inactive before awakening again
-                    userFromSleep = False
+                # If user is active and idle == True, user came back from inactivity
+                if idle:
+                    inactDurationEnd += time.time()
+                    # User is no longer idle. Set idle = False for the next inactivity.
+                    idle = False
 
-            # When the program is ran for the first time, windowName is ""
-            if self.activity["windowName"] != "":
-                if currentWindow != self.activity["windowName"]:
-                    if userFromSleep:
-                        # Handles the missing end time when the user is inactive
-                        # and a change of window occurs (e.g. when waiting for a
-                        # webpage to load, the windowName is "New Tab", which
-                        # changes when the page loads)
+            if currentWindow != activity["windowName"]:
+                if idle:
+                    # Handles the missing end time when the user is inactive
+                    # and a change of window occurs (e.g. when waiting for a
+                    # webpage to load, the windowName is "New Tab", which
+                    # changes when the page loads, "new tab" -> "youtube.com")
+                    inactDurationEnd += time.time()
+                    idle = False
 
-                        inactiveDur["end"] += time.time()
-                        userFromSleep = False
+                activity["actEnd"] = datetime.now()
 
-                    self.activity["actEnd"] = datetime.now()
+                windowDuration = (
+                    activity["actEnd"] - activity["actStart"]
+                )
 
-                    tWindowDuration = (
-                        self.activity["actEnd"] - self.activity["actStart"]
-                    )
+                if windowDuration.total_seconds() < self.ACTIVMINTIME:
+                    continue
 
-                    if tWindowDuration.total_seconds() >= self.ACTIVMINTIME:
-                        self.activity["inactDuration"] = (
-                            inactiveDur["end"] - inactiveDur["start"]
-                        )
+                activity["inactDuration"] = (
+                    inactDurationEnd - inactDurationStart
+                )
 
-                        inactiveDur["start"] = 0
-                        inactiveDur["end"] = 0
-                        break
+                inactDurationStart = 0.0
+                inactDurationEnd = 0.0
 
-            self.activity["windowName"] = currentWindow
-            self.activity["processName"] = currentProcess
+                activity = toIso8601(activity, ["actStart", "actEnd"])
+                activity = dictValToStr(activity)
 
-        # Converts the listed key's values into
-        # iso8601 time format specified by sqlite3
-        self.toIso8601(self.activity, ["actStart", "actEnd"])
+                return activity
 
-        # Convert dict values to string
-        self.dictValToStr(self.activity)
+def toIso8601(activityDict, keys):
+    # ARGS: Dictionary, Keys of values to be converted
+    # Converts the values of the keys from dictionary
+    # into format specified by sqlite3 iso861
+    activity = activityDict
+    for key in keys:
+        activity[key] = activity[key].isoformat(
+            sep=" ", timespec="milliseconds"
+        )
+    return activity
 
-        return self.activity
-
-    def toIso8601(self, activityDict, keys):
-        # ARGS: Dictionary, Keys of values to be converted
-        # Converts the values of the keys from dictionary
-        # into format specified by sqlite3 iso861
-        for key in keys:
-            activityDict[key] = activityDict[key].isoformat(
-                sep=" ", timespec="milliseconds"
-            )
-
-    def dictValToStr(self, activityDict):
-        # ARGS: dictionary to convert
-        # Converts all values for all keys to string.
-        for key in activityDict:
-            activityDict[key] = str(activityDict[key])
+def dictValToStr(activityDict):
+    # ARGS: dictionary to convert
+    # Converts all values for all keys to string.
+    activity = activityDict
+    for key in activity:
+        activity[key] = str(activity[key])
+    return activity
