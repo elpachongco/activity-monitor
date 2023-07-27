@@ -1,9 +1,7 @@
 import ctypes, time, csv, logging
-from datetime import datetime
 import platform
 import subprocess
 
-import tracemalloc
 logger = logging.getLogger()
 
 if platform.system() == "Windows":
@@ -140,12 +138,13 @@ def getUserIsActive(lastInputInfo, os, minGap=800):
     logger.error("OS is Unknown: %s")
     raise Exception("OS is Unknown: %s", os)
 
+
 class Tracker:
     # Get foreground window, track inactivity. Return when window changes
 
     # Activity will not be considered unless the user
     # spent time greater than this value.
-    ACTIVMINTIME = 0.8  # Seconds
+    ACTIVMINSECONDS = 0.8  # Seconds
 
     # Min time for each while loop. Helps in lowering
     # memory by reducing API calls to the OS.
@@ -167,19 +166,21 @@ class Tracker:
 
         returns:
             activity = {
-                "actStart": None,
-                "actEnd": None,
+                "startMS": None,
+                "endMS": None,
                 "processName": "",
                 "windowName": "",
-                "inactDuration": 0.0,
+                "idleMS": 0.0,
+                "lengthMS": 0
             }
-       """
+        """
         activity = {
-            "actStart": None,
-            "actEnd": None,
+            "startMS": 0,
+            "endMS": 0,
             "processName": "",
             "windowName": "",
-            "inactDuration": 0.0,
+            "idleMS": 0.0,
+            "lengthMS": 0,
         }
 
         currentWindow = ""
@@ -188,10 +189,10 @@ class Tracker:
 
         # Every time user gets inactive, add current time to start.
         # if inactivity ends, add current time to end.
-        inactDurationStart = 0.0
-        inactDurationEnd = 0.0
+        idleStartSeconds = 0.0
+        idleEndSeconds = 0.0
 
-        activity["actStart"] = datetime.now()
+        activity["startMS"] = time.time()
 
         while currentWindow == activity["windowName"]:
             time.sleep(self.WHILEINTERVAL)
@@ -209,12 +210,12 @@ class Tracker:
 
             if not userIsActive:
                 if not idle:
-                    inactDurationStart += time.time()
+                    idleStartSeconds += time.time()
                     idle = True
             else:
                 # If user is active and idle == True, user came back from inactivity
                 if idle:
-                    inactDurationEnd += time.time()
+                    idleEndSeconds += time.time()
                     # User is no longer idle. Set idle = False for the next inactivity.
                     idle = False
 
@@ -224,29 +225,24 @@ class Tracker:
                     # and a change of window occurs (e.g. when waiting for a
                     # webpage to load, the windowName is "New Tab", which
                     # changes when the page loads, "new tab" -> "youtube.com")
-                    inactDurationEnd += time.time()
+                    idleEndSeconds += time.time()
                     idle = False
 
-                activity["actEnd"] = datetime.now()
+                activity["endMS"] = time.time()
 
-                windowDuration = (
-                    activity["actEnd"] - activity["actStart"]
-                )
+                activity["lengthMS"] = int((activity["endMS"] - activity["startMS"]) * 1000)
 
-                if windowDuration.total_seconds() < self.ACTIVMINTIME:
+                if activity["lengthMS"] < self.ACTIVMINSECONDS * 1000:
                     continue
 
-                activity["inactDuration"] = (
-                    inactDurationEnd - inactDurationStart
-                )
+                activity["idleMS"] = int((idleEndSeconds - idleStartSeconds) * 1000)
 
-                inactDurationStart = 0.0
-                inactDurationEnd = 0.0
-
-                activity = toIso8601(activity, ["actStart", "actEnd"])
+                activity["startMS"] = int(activity["startMS"] * 1000)
+                activity["endMS"] = int(activity["endMS"] * 1000)
                 activity = dictValToStr(activity)
 
                 return activity
+
 
 def toIso8601(activityDict, keys):
     # ARGS: Dictionary, Keys of values to be converted
@@ -254,10 +250,9 @@ def toIso8601(activityDict, keys):
     # into format specified by sqlite3 iso861
     activity = activityDict
     for key in keys:
-        activity[key] = activity[key].isoformat(
-            sep=" ", timespec="milliseconds"
-        )
+        activity[key] = activity[key].isoformat(sep=" ", timespec="milliseconds")
     return activity
+
 
 def dictValToStr(activityDict):
     # ARGS: dictionary to convert

@@ -5,51 +5,31 @@ import logging
 
 logger = logging.getLogger()
 
+
 class Uploader:
-    TABLENAME = "activity_data"
 
     # Min amount of items to upload. If this number hasn't
     # been reached, upload() saves the item into a list
     # (to be implemented).
     minUpload = 1
 
-    def __init__(self, dbPath):
+    def __init__(self, dbPath, tableName):
         # - Connect to the db
         # - Create the table if it doesn't exist
         # Table will have column name same as
         # Dictionary keys
 
         self.__dbPath = dbPath
+        self.tableName = tableName
         self.sqlConnection = sqlite3.connect(self.__dbPath)
         self.sqlCursor = self.sqlConnection.cursor()
-
-        self.sqlCursor.execute(
-            """
-
-            CREATE TABLE IF NOT EXISTS {tn}
-            ({colA}, {colB}, {colC}, {colD}, {colE})
-
-            """.format(
-                tn=self.TABLENAME,
-                colA="actStart TEXT",
-                colB="actEnd TEXT",
-                colC="inactDuration REAL",
-                colD="windowName TEXT",
-                colE="processName TEXT",
-            )
-        )
-
-        self.sqlConnection.commit()
 
     def upload(self, activityDict):
         self.sqlCursor.execute(
             """
-
-            INSERT INTO {tn} VALUES (:actStart, :actEnd,  :inactDuration,
-            :windowName, :processName)
-
+            INSERT INTO {tn} VALUES (:startMS, :endMS, :lengthMS, :idleMS, :windowName, :processName)
             """.format(
-                tn=self.TABLENAME
+                tn=self.tableName
             ),
             activityDict,
         )

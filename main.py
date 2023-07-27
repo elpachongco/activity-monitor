@@ -1,32 +1,31 @@
 from src.uploader import Uploader
 from src.tracker import Tracker
+from scripts.make_db import createDB
 
-from config.keywords import IGNORES, CENSORS
+import os
+from dotenv import load_dotenv
 
-from os import environ
+#from config.keywords import IGNORES, CENSORS
+
 from pathlib import Path
 import logging
 
 from logging.handlers import TimedRotatingFileHandler
 from logging import Formatter
 
-format = "%(asctime)s %(filename)s: %(levelname)s %(message)s"
-formatter = Formatter(format)
-level = logging.DEBUG
-
-logger = logging.getLogger()
-logger.setLevel(level)
-handler = TimedRotatingFileHandler(filename='logs/tracker.log', when='H', interval=48, backupCount=3)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-environ["ACTIVITY_DB"] = str(Path.cwd() / "activity.db")
-tracker = Tracker()
-logger.info("Setup done")
-logger.info("Activity Database at %s", environ["ACTIVITY_DB"])
-
 def main():
-	logger.info("ran as application, main function loop started")
+	load_dotenv()
+	logger = setupLogger()
+
+	DB_NAME = os.getenv("DB_NAME") or "activity.sqlite"
+	DB_PATH = str(Path.cwd() / DB_NAME)
+	TABLE_NAME = os.getenv("TABLE_NAME") or "activity_data"
+
+	# Create new db if it doesn't exist.
+	createDB(DB_PATH, TABLE_NAME)
+
+	tracker = Tracker()
+	logger.info("Activity Database at %s", DB_PATH)
 	while True:
 		# call method: tracker.track()
 		# ARGS: 
@@ -34,19 +33,30 @@ def main():
 		#	{"processName": , "windowName": "actStart": ,
 		#	"actEnd": , "inactDuration":}
 		activity = tracker.track()
-		#activity = {"processName": "test", "windowName": "test", "actStart":  "2023-01-01T00:00:00.000", "actEnd": "2023-01-01T00:00:00.000", "inactDuration":"0"}
 
 		# Call method: None uploader.upload()
 		# ARGS: Python Dictionary returned by tracker.track(). Must have keys:
 		# 		"procesName", "windowName", "actStart", "actEnd", "inactDuration".
 		#		All values must be a string.
 		# RETURN: None
-		with Uploader(environ["ACTIVITY_DB"]) as uploader:
+		with Uploader(DB_PATH, TABLE_NAME) as uploader:
 			uploader.upload(activity)
 
 		# No limiter for while loop, since tracker.track() is blocking and will
 		# stop the loop while user is focused on the same window.
 
+def setupLogger():
+	format = "%(asctime)s %(filename)s: %(levelname)s %(message)s"
+	formatter = Formatter(format)
+	level = logging.DEBUG
+
+	logger = logging.getLogger()
+
+	logger.setLevel(level)
+	handler = TimedRotatingFileHandler(filename='logs/tracker.log', when='H', interval=48, backupCount=3)
+	handler.setFormatter(formatter)
+	logger.addHandler(handler)
+	return logger
 
 if __name__ == "__main__":
 	main()

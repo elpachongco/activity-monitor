@@ -33,7 +33,7 @@ app.config["SWAGGER"] = {"title": "Activity Monitor API"}
 swagger = Swagger(app)
 
 # Path to sqlite database
-dbPath = "../../activity.db"
+dbPath = "../../activity.sqlite"
 
 # open a read-only connection to the db using uri
 # Allow connection as a non-creator of db
@@ -41,42 +41,44 @@ db = sqlite3.connect("file:" + dbPath + "?mode=ro", check_same_thread=False, uri
 
 db.row_factory = sqlite3.Row
 
-TABLE_COLUMNS = ["actStart", "actEnd", "inactDuration", "windowName", "processName"]
+DB_TABLE_COLUMNS = ["startMS", "endMS", "lengthMS", "idleMS", "windowName", "processName"]
 
 
-@app.route("/api/activities/all", methods=["GET"])
+@app.route("/api/activities/latest", methods=["GET"])
 def activities():
+    """Get the latest activity from database.
+    ---
+    responses:
+        200:
+            description: Successful request. Error property will contain a blank string `\"\"`.
+            schema:
+                $ref: '#/definitions/SuccessfulResponse'
+
+        400:
+            description: Bad request. Error property will contain a message string.
+            schema:
+                $ref: '#/definitions/ErrorResponse'
     """
-    Get all activities from database. Sorted chronologically.
-    query params:
-    returns:
-    json dict, status code, headers
-    """
-    queryData = {}
 
     activityData = db.execute(
         """
-        SELECT * FROM activity_data;
+        SELECT * FROM activity_data ORDER BY actStart DESC LIMIT 1;
         """
     )
 
-    # fetchall() returns a list of SQL ROW objects.
-    # Creates a dictionary with key "rows" that contain a list of dict
-    # that each represent a row in the table.
-
-    queryKeys = ["actStart", "actEnd", "inactDuration", "processName", "windowName"]
-    for key in queryKeys:
+    queryData = {}
+    for key in DB_TABLE_COLUMNS:
         queryData[key] = []
         # queryData[key] = [dict(row)[key] for row in activityData.fetchall()]
 
     for row in activityData.fetchall():
-        for key in queryKeys:
+        for key in DB_TABLE_COLUMNS:
             queryData[key].append(dict(row)[key])
 
     headers = {"Access-Control-Allow-Origin": "*"}
     statusCode = 200
 
-    return queryData, statusCode, headers
+    return {"error": "", "result": queryData}, statusCode, headers
 
 
 @app.route("/api/activities/filter", methods=["GET"])
@@ -88,11 +90,11 @@ def filter_activities():
           description: Column to base ordering on
           in: query
           type: string
-          enum: [actStart, actEnd, inactDuration, windowName, processName]
+          enum: ["startMS", "endMS", "durationMS", "idleMS", "windowName", "processName"]
           default:
-                actStart
+                startMS
           example:
-                order-by=inactDuration
+                order-by=idleMS
 
         - name: order
           description: Type of ordering
@@ -183,9 +185,9 @@ def filter_activities():
     headers = {"Access-Control-Allow-Origin": "*"}
 
     # Get query params. If not present, use default.
-    orderBy = request.args.get("order-by") or "actStart"
+    orderBy = request.args.get("order-by") or "startMS"
     order = request.args.get("order") or "ascending"
-    fields = request.args.get("fields") or ",".join(TABLE_COLUMNS)
+    fields = request.args.get("fields") or ",".join(DB_TABLE_COLUMNS)
     timestampFrom = request.args.get("timestamp-start") or "now"
     timestampTo = request.args.get("timestamp-end") or "now"
     limit = request.args.get("limit") or "1"
@@ -194,10 +196,10 @@ def filter_activities():
     fieldsList = fields.split(",")
 
     # ---------- Query param validation
-    if orderBy not in TABLE_COLUMNS:
+    if orderBy not in DB_TABLE_COLUMNS:
         return (
             {
-                "error": f"Query parameter: `orderBy` should be one of TABLE_COLUMNS. TABLE_COLUMNS: {TABLE_COLUMNS}"
+                "error": f"Query parameter: `orderBy` should be one of DB_TABLE_COLUMNS. DB_TABLE_COLUMNS: {DB_TABLE_COLUMNS}"
             },
             400,
             headers,
@@ -217,11 +219,11 @@ def filter_activities():
         )
 
     # make all items of fieldsList unique with set
-    # See if all the items of fieldsList are all TABLE_COLUMNS
-    if not len(set(fieldsList).difference(TABLE_COLUMNS)) == 0:
+    # See if all the items of fieldsList are all DB_TABLE_COLUMNS
+    if not len(set(fieldsList).difference(DB_TABLE_COLUMNS)) == 0:
         return (
             {
-                "error": f"Query parameter: `fields` should contain any of TABLE_COLUMNS only. TABLE_COLUMNS: {TABLE_COLUMNS}"
+                "error": f"Query parameter: `fields` should contain any of DB_TABLE_COLUMNS only. DB_TABLE_COLUMNS: {DB_TABLE_COLUMNS}"
             },
             400,
             headers,
@@ -254,7 +256,7 @@ def filter_activities():
         SELECT {fields} from activity_data
 
         /* see https://www.sqlite.org/lang_datefunc.html */
-        WHERE actStart >= DATETIME('{tsFrom}') AND actStart <= DATETIME('{tsTo}')
+        WHERE startMS/1000 >= CAST(STRFTIME('%s', '{tsFrom}') as integer) AND startMS/1000 <= CAST(STRFTIME('%s', '{tsTo}') as integer)
         ORDER BY {orderBy} {order}
         LIMIT {limit};
         """.format(
@@ -284,8 +286,34 @@ def filter_activities():
     return {"error": "", "result": queryData}, 200, headers
 
 
-@app.route("/data/", methods=["GET"])
+@app.route("/data", methods=["GET"])
 def getActivities():
+    """Old endpoint for dashboard
+    ---
+    parameters:
+        - name: period
+          description: Return data from now to this
+          in: query
+          type: string
+          enum: [24h, 3d, 7d, 1M, 3M, 6M, 1Y, all]
+          default:
+                'start of day'
+          example:
+                period=24h
+
+    responses:
+        200:
+            description: Successful request. Error property will contain a blank string `\"\"`.
+            schema:
+                $ref: '#/definitions/SuccessfulResponse'
+
+        400:
+            description: Bad request. Error property will contain a message string.
+            schema:
+                $ref: '#/definitions/ErrorResponse'
+    """
+
+
     period = request.args.get("period")
     dateFilter = parsePeriod(period)
 
