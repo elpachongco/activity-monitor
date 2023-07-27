@@ -62,7 +62,7 @@ def activities():
 
     activityData = db.execute(
         """
-        SELECT * FROM activity_data ORDER BY actStart DESC LIMIT 1;
+        SELECT * FROM activity_data ORDER BY startMS DESC LIMIT 1;
         """
     )
 
@@ -115,11 +115,11 @@ def filter_activities():
           minItems: 0
           maxItems: 5
           uniqueItems: true
-          enum: [actStart,actEnd,inactDuration,windowName,processName]
+          enum: ["startMS", "endMS", "durationMS", "idleMS", "windowName", "processName"]
           default:
-                [actStart,actEnd,inactDuration,windowName,processName]
+                ["startMS", "endMS", "durationMS", "idleMS", "windowName", "processName"]
           example:
-                fields=actStart,actEnd,inactDuration
+                fields=startMS,endMS,idleMS
 
         - name: timestamp-start
           description: ISO8601 timestamp to retrieve data from or "now".
@@ -223,7 +223,7 @@ def filter_activities():
     if not len(set(fieldsList).difference(DB_TABLE_COLUMNS)) == 0:
         return (
             {
-                "error": f"Query parameter: `fields` should contain any of DB_TABLE_COLUMNS only. DB_TABLE_COLUMNS: {DB_TABLE_COLUMNS}"
+                "error": f"Query parameter: `fields` should contain any of DB_TABLE_COLUMNS only. WANT: {DB_TABLE_COLUMNS} Got: {fieldsList}"
             },
             400,
             headers,
@@ -251,16 +251,23 @@ def filter_activities():
         )
     # ---------- xxxx
 
+    # Return epoch MS fields as iso8601 timestamps
+    queryFields = fieldsList.copy()
+    for i, field in enumerate(fieldsList):
+        if field in ['startMS', 'endMS']:
+            # DATETIME(startMS / 1000, 'unixepoch') as field
+            queryFields[i] = "DATETIME(" + field + " / 1000,  'unixepoch', 'localtime') as " + field
+
     activityData = db.execute(
         """
         SELECT {fields} from activity_data
 
         /* see https://www.sqlite.org/lang_datefunc.html */
-        WHERE startMS/1000 >= CAST(STRFTIME('%s', '{tsFrom}') as integer) AND startMS/1000 <= CAST(STRFTIME('%s', '{tsTo}') as integer)
+        WHERE DATETIME(startMS/1000, 'unixepoch', 'localtime') >= DATETIME('{tsFrom}') AND DATETIME(startMS/1000, 'unixepoch', 'localtime') <= DATETIME('{tsTo}')
         ORDER BY {orderBy} {order}
         LIMIT {limit};
         """.format(
-            fields=fields,
+            fields=",".join(queryFields),
             orderBy=orderBy,
             order=order,
             tsFrom=timestampFrom,
