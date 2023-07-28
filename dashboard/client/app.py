@@ -1,8 +1,9 @@
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, render_template
 import sqlite3
 from datetime import datetime
 from flasgger import Swagger
 import logging
+import json
 
 # This program receives GET requests from the frontend, queries the database
 # then responds in JSON (python dictionary)
@@ -403,3 +404,8 @@ def isTimestampValid(timestamp):
             return True
         except:
             return False
+
+@app.route("/dashboard")
+def dashboard():
+    val = 24
+    return render_template('dashboard.html', val=json.dumps(val))
