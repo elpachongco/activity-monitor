@@ -10,6 +10,7 @@ Flask = "^2.3.2"
 setuptools = "^68.0.0"
 flasgger = "0.9.7b2"
 python-dotenv = "^1.0.0"
+activity-tracking = "^0.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "^23.7.0"

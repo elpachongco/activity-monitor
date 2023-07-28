@@ -1,4 +1,12 @@
 [[package]]
+name = "activity-tracking"
+version = "0.0.1"
+description = "Utility functions for desktop activity tracking"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[[package]]
 name = "attrs"
 version = "23.1.0"
 description = "Classes Without Boilerplate"
@@ -336,9 +344,10 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-ena
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "64b734e5ae58a58278418cf138a0593da77725d3fa5a54ea92e48914d6fb8ae0"
+content-hash = "3afa9954aff7024b0f3feb889dadbd38c53faf8511385ae309fb201be2685408"
 
 [metadata.files]
+activity-tracking = []
 attrs = []
 black = []
 blinker = []
