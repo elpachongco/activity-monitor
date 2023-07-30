@@ -1,5 +1,24 @@
 # Changelog
 
+## 2023-07-30
+
+- New DB structure
+    - Store timestamps as integers 
+    - Use `actStart` integer timestamp as primary key index 
+    - `actStart` and `actEnd`, `inactDuration` are now stored as integer milliseconds
+    - Rename columns `actStart`, `actEnd`, `inactDuration` to `startMS`, `endMS`, `idleMS`
+    - A new column `lengthMS`
+    - `startMS` and `endMS` is still served as 
+
+- Activity tracking library
+    - I published the activity tracker code as a Python library: [Pypi page](https://pypi.org/project/activity-tracking/), 
+     [Github repository](https://github.com/elpachongco/activity-tracking-lib)
+
+- Dashboard revamp
+    - Migrate from typescript, sass, chartjs to a flask dashboard using
+        templates and the api.
+    - Now using apexcharts.
+
 ## 2023-07-24
 
 - REST API is here 
