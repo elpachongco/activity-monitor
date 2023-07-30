@@ -6,9 +6,12 @@ An open-source productivity app that logs desktop activity data.
 
 > Records foreground window name and tracks idle times based on user input activity. 
 
+Uses [desktopspy](https://github.com/elpachongco/desktopspy) under the hood.
+
 ### Features
 
 - Open source
+- Supports windows and linux
 - Your data is yours only, forever
 - Dashboard
 - REST API
