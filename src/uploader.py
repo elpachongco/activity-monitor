@@ -1,5 +1,5 @@
-import sqlite3
 import logging
+import sqlite3
 
 # This program accepts info about the activity then uploads it to an sqlite3 db
 
@@ -7,7 +7,6 @@ logger = logging.getLogger()
 
 
 class Uploader:
-
     # Min amount of items to upload. If this number hasn't
     # been reached, upload() saves the item into a list
     # (to be implemented).
@@ -27,7 +26,8 @@ class Uploader:
     def upload(self, activityDict):
         self.sqlCursor.execute(
             """
-            INSERT INTO {tn} VALUES (:startMS, :endMS, :lengthMS, :idleMS, :windowName, :processName)
+            INSERT INTO {tn} VALUES (:startMS, :endMS, :lengthMS, :idleMS, :windowName,
+                    :processName)
             """.format(
                 tn=self.tableName
             ),

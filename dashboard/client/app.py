@@ -12,7 +12,7 @@ import json
 # running (windows):
 # $ pipenv run flask run --host=0.0.0.0
 # Also set flask to dev mode (powershell) to enable hot reload
-# $env:FLASK_ENV="development" or use --debug arg 
+# $env:FLASK_ENV="development" or use --debug arg
 from logging.handlers import TimedRotatingFileHandler
 from logging import Formatter
 
@@ -22,7 +22,9 @@ level = logging.DEBUG
 
 logger = logging.getLogger()
 logger.setLevel(level)
-handler = TimedRotatingFileHandler(filename='../../logs/server.log', when='H', interval=48, backupCount=3)
+handler = TimedRotatingFileHandler(
+    filename="../../logs/server.log", when="H", interval=48, backupCount=3
+)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -42,7 +44,14 @@ db = sqlite3.connect("file:" + dbPath + "?mode=ro", check_same_thread=False, uri
 
 db.row_factory = sqlite3.Row
 
-DB_TABLE_COLUMNS = ["startMS", "endMS", "lengthMS", "idleMS", "windowName", "processName"]
+DB_TABLE_COLUMNS = [
+    "startMS",
+    "endMS",
+    "lengthMS",
+    "idleMS",
+    "windowName",
+    "processName",
+]
 
 
 @app.route("/api/activities/latest", methods=["GET"])
@@ -255,9 +264,11 @@ def filter_activities():
     # Return epoch MS fields as iso8601 timestamps
     queryFields = fieldsList.copy()
     for i, field in enumerate(fieldsList):
-        if field in ['startMS', 'endMS']:
+        if field in ["startMS", "endMS"]:
             # DATETIME(startMS / 1000, 'unixepoch') as field
-            queryFields[i] = "DATETIME(" + field + " / 1000,  'unixepoch', 'localtime') as " + field
+            queryFields[i] = (
+                "DATETIME(" + field + " / 1000,  'unixepoch', 'localtime') as " + field
+            )
 
     activityData = db.execute(
         """
@@ -320,7 +331,6 @@ def getActivities():
             schema:
                 $ref: '#/definitions/ErrorResponse'
     """
-
 
     period = request.args.get("period")
     dateFilter = parsePeriod(period)
@@ -405,7 +415,8 @@ def isTimestampValid(timestamp):
         except:
             return False
 
+
 @app.route("/dashboard")
 def dashboard():
     val = 24
-    return render_template('dashboard.html', val=json.dumps(val))
+    return render_template("dashboard.html", val=json.dumps(val))

@@ -16,8 +16,8 @@ Things to test:
 sys.path.insert(0, os.path.abspath(".."))
 import main
 
-class TestMain(unittest.TestCase): 
 
+class TestMain(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -42,7 +42,7 @@ class TestMain(unittest.TestCase):
     #     dbTail = self.sqlConnection.execute("SELECT * FROM activity_data \
     #     ORDER BY actStart DESC LIMIT 1;")
 
-    #     self.assertEqual(activity["windowName"], dbTail.fetchone()[3]) 
+    #     self.assertEqual(activity["windowName"], dbTail.fetchone()[3])
     #     self.sqlConnection.close()
 
 

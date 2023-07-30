@@ -1,12 +1,15 @@
-import ctypes, time, csv, logging
+import csv
+import ctypes
+import logging
 import platform
 import subprocess
+import time
 
 logger = logging.getLogger()
 
 if platform.system() == "Windows":
     # ctypes handles the Windows-specific functions
-    from ctypes import wintypes, windll, create_unicode_buffer, byref
+    from ctypes import byref, create_unicode_buffer, windll, wintypes
 
 
 class LASTINPUTINFO(ctypes.Structure):
@@ -230,7 +233,9 @@ class Tracker:
 
                 activity["endMS"] = time.time()
 
-                activity["lengthMS"] = int((activity["endMS"] - activity["startMS"]) * 1000)
+                activity["lengthMS"] = int(
+                    (activity["endMS"] - activity["startMS"]) * 1000
+                )
 
                 if activity["lengthMS"] < self.ACTIVMINSECONDS * 1000:
                     continue
