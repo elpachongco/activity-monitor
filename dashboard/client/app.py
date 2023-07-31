@@ -1,20 +1,14 @@
-from flask import Flask, request, redirect, render_template
+from collections import defaultdict
+import json
+import logging
 import sqlite3
 from datetime import datetime
-from flasgger import Swagger
-import logging
-import json
-
-# This program receives GET requests from the frontend, queries the database
-# then responds in JSON (python dictionary)
-#
-# Let SQL do the complicated computations
-# running (windows):
-# $ pipenv run flask run --host=0.0.0.0
-# Also set flask to dev mode (powershell) to enable hot reload
-# $env:FLASK_ENV="development" or use --debug arg
-from logging.handlers import TimedRotatingFileHandler
 from logging import Formatter
+
+from logging.handlers import TimedRotatingFileHandler
+
+from flasgger import Swagger
+from flask import Flask, redirect, render_template, request
 
 format = "%(asctime)s %(filename)s: %(levelname)s %(message)s"
 formatter = Formatter(format)
@@ -91,6 +85,82 @@ def activities():
     return {"error": "", "result": queryData}, statusCode, headers
 
 
+@app.route("/api/activities/interval/all", methods=["GET"])
+def interval_total():
+    """Aggregate activities by interval
+    ---
+    parameters:
+        - name: interval
+          in: query
+          description: Interval to apply the method to.
+            See strftime values https://www.sqlite.org/lang_datefunc.html
+            [('minute', '%M'), ('minute-hour', '%M-%H'), ('minute-day', '%M-%d'),
+            ('minute-month', '%M-%m'), ('minute-year', '%M-%Y'), ('hour', '%H'),
+            ('hour-yearday', '%H-%j'), ('hour-weekday', '%H-%w'),
+            ('hour-monthday', '%H-%d'), ('hour-month', '%H-%m'), ('hour-year', '%H-%Y'),
+            ('day', '%d'), ('day-week', '%w'), ('day-year', '%j'), ('month', '%m')]
+          default: day
+          enum: ['minute', 'minute-hour', 'minute-day', 'minute-month', 'minute-year',
+                 'hour', 'hour-yearday', 'hour-weekday', 'hour-monthday', 'hour-month',
+                 'hour-year', 'day', 'day-week', 'day-year', 'month']
+
+        - name: method
+          in: query
+          enum: [sum, avg, count, max, min]
+    """
+
+    headers = {"Access-Control-Allow-Origin": "*"}
+
+    method = request.args.get("method") or "sum"
+    if method not in ["sum", "avg", "count", "max", "min"]:
+        return {"error": "Invalid method", "result": {}}, 400, headers
+
+    validIntervals = {
+        "minute": "%M",
+        "minute-hour": "%M-%H",
+        "minute-day": "%M-%d",
+        "minute-month": "%M-%m",
+        "minute-year": "%M-%Y",
+        "hour": "%H",
+        "hour-yearday": "%H-%j",
+        "hour-weekday": "%H-%w",
+        "hour-monthday": "%H-%d",
+        "hour-month": "%H-%m",
+        "hour-year": "%H-%Y",
+        "day": "%d",
+        "day-week": "%w",
+        "day-year": "%j",
+        "month": "%m",
+    }
+
+    interval = request.args.get("interval") or "day"
+    if interval not in validIntervals.keys():
+        return {"error": "Invalid interval", "result": {}}, 400, headers
+
+    interval = validIntervals[interval]
+
+    activityData = db.execute(
+        """
+        SELECT
+        STRFTIME('{interval}', startMS/1000, 'unixepoch', 'localtime') as interval,
+        CAST({agg}(lengthMS)as REAL) / 1000 / 60 as lengthMinutes,
+        CAST({agg}(idleMS) as REAL) / 1000 / 60 as idleMinutes
+        FROM activity_data
+        GROUP BY STRFTIME('{interval}', startMS / 1000, 'unixepoch', 'localtime')
+        ORDER BY interval
+        """.format(
+            agg=method,
+            interval=interval
+        )
+    )
+
+    a = defaultdict(list)
+    for row in activityData:
+        [a[key].append(row[key]) for key in row.keys()]
+
+    return {"error": "", "result": a}, 200, headers
+
+
 @app.route("/api/activities/filter", methods=["GET"])
 def filter_activities():
     """Get and filter activities from database.
@@ -100,7 +170,7 @@ def filter_activities():
           description: Column to base ordering on
           in: query
           type: string
-          enum: ["startMS", "endMS", "durationMS", "idleMS", "windowName", "processName"]
+          enum: ["startMS", "endMS", "lengthMS", "idleMS", "windowName", "processName"]
           default:
                 startMS
           example:
@@ -125,9 +195,9 @@ def filter_activities():
           minItems: 0
           maxItems: 5
           uniqueItems: true
-          enum: ["startMS", "endMS", "durationMS", "idleMS", "windowName", "processName"]
+          enum: ["startMS", "endMS", "lengthMS", "idleMS", "windowName", "processName"]
           default:
-                ["startMS", "endMS", "durationMS", "idleMS", "windowName", "processName"]
+                ["startMS", "endMS", "lengthMS", "idleMS", "windowName", "processName"]
           example:
                 fields=startMS,endMS,idleMS
 
@@ -209,7 +279,8 @@ def filter_activities():
     if orderBy not in DB_TABLE_COLUMNS:
         return (
             {
-                "error": f"Query parameter: `orderBy` should be one of DB_TABLE_COLUMNS. DB_TABLE_COLUMNS: {DB_TABLE_COLUMNS}"
+                "error": f"Query parameter: `orderBy` should be one of DB_TABLE_COLUMNS.\
+                        DB_TABLE_COLUMNS: {DB_TABLE_COLUMNS}"
             },
             400,
             headers,
@@ -222,7 +293,8 @@ def filter_activities():
     else:
         return (
             {
-                "error": "Query parameter: `order` should either be 'ascending' or 'descending'."
+                "error": "Query parameter: `order` should either be 'ascending' or \
+                        'descending'."
             },
             400,
             headers,
@@ -233,19 +305,22 @@ def filter_activities():
     if not len(set(fieldsList).difference(DB_TABLE_COLUMNS)) == 0:
         return (
             {
-                "error": f"Query parameter: `fields` should contain any of DB_TABLE_COLUMNS only. WANT: {DB_TABLE_COLUMNS} Got: {fieldsList}"
+                "error": f"Query parameter: `fields` should contain any of \
+                        DB_TABLE_COLUMNS only. \
+                        WANT: {DB_TABLE_COLUMNS} Got: {fieldsList}"
             },
             400,
             headers,
         )
 
     if not limit.isdigit():
-        return {"error": f"Query parameter: `limit` should be a digit."}, 400, headers
+        return {"error": "Query parameter: `limit` should be a digit."}, 400, headers
 
     if not isTimestampValid(timestampFrom):
         return (
             {
-                "error": "Query parameter: `timestamp-start` should be 'now' or an IS08601 timestamp with the format %Y-%m-%dT%H:%M:%S.%f."
+                "error": "Query parameter: `timestamp-start` should be 'now' or an \
+                        IS08601 timestamp with the format %Y-%m-%dT%H:%M:%S.%f."
             },
             400,
             headers,
@@ -254,7 +329,8 @@ def filter_activities():
     if not isTimestampValid(timestampTo):
         return (
             {
-                "error": "Query parameter: `timestamp-end` should be 'now' or an IS08601 timestamp with the format %Y-%m-%dT%H:%M:%S.%f."
+                "error": "Query parameter: `timestamp-end` should be 'now' or an \
+                        IS08601 timestamp with the format %Y-%m-%dT%H:%M:%S.%f."
             },
             400,
             headers,
@@ -275,7 +351,8 @@ def filter_activities():
         SELECT {fields} from activity_data
 
         /* see https://www.sqlite.org/lang_datefunc.html */
-        WHERE DATETIME(startMS/1000, 'unixepoch', 'localtime') >= DATETIME('{tsFrom}') AND DATETIME(startMS/1000, 'unixepoch', 'localtime') <= DATETIME('{tsTo}')
+        WHERE DATETIME(startMS/1000, 'unixepoch', 'localtime') >= DATETIME('{tsFrom}')
+        AND DATETIME(startMS/1000, 'unixepoch', 'localtime') <= DATETIME('{tsTo}')
         ORDER BY {orderBy} {order}
         LIMIT {limit};
         """.format(
@@ -322,7 +399,8 @@ def getActivities():
 
     responses:
         200:
-            description: Successful request. Error property will contain a blank string `\"\"`.
+            description: Successful request. Error property will contain a \
+                    blank string `\"\"`.
             schema:
                 $ref: '#/definitions/SuccessfulResponse'
 
@@ -412,7 +490,7 @@ def isTimestampValid(timestamp):
         try:
             datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
             return True
-        except:
+        except ValueError:
             return False
 
 
