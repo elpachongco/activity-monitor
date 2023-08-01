@@ -65,6 +65,11 @@ class Tracker:
             # Detects user Inactivity
             userIsActive = isUserActive(self.os)
             currentWindow, currentPid = getForegroundWindow(self.os)
+            if currentPid == "":  # This means there is no window selected i.e. on reboot
+                currentWindow = ""
+                activity["windowName"] = ""
+                activity["startMS"] = 0
+                continue
             currentProcess = psutil.Process(currentPid).name()
 
             # When track() is ran for the first time, windowName, procesName is ""
