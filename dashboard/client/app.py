@@ -93,12 +93,23 @@ def interval_total():
         - name: interval
           in: query
           description: Interval to apply the method to.
-            See strftime values https://www.sqlite.org/lang_datefunc.html
+            Determines the grouping of the intervals.
+            minute (%M) -- groups data by minute only
+            i.e. This will group august 3 2023 8:04am and any other time at minute 4.
+            minute-day (%M-%H) -- groups data by minute and day of month (00-31).
+            i.e. This will group august 3 2023 8:04am and january 3 2023 12:04pm.
+
+            Below is a list containing the possible values and their sqlite datetime
+            selector.
+
+            ```
             [('minute', '%M'), ('minute-hour', '%M-%H'), ('minute-day', '%M-%d'),
             ('minute-month', '%M-%m'), ('minute-year', '%M-%Y'), ('hour', '%H'),
             ('hour-yearday', '%H-%j'), ('hour-weekday', '%H-%w'),
             ('hour-monthday', '%H-%d'), ('hour-month', '%H-%m'), ('hour-year', '%H-%Y'),
             ('day', '%d'), ('day-week', '%w'), ('day-year', '%j'), ('month', '%m')]
+            ```
+            See strftime values `https://www.sqlite.org/lang_datefunc.html`
           default: day
           enum: ['minute', 'minute-hour', 'minute-day', 'minute-month', 'minute-year',
                  'hour', 'hour-yearday', 'hour-weekday', 'hour-monthday', 'hour-month',
@@ -107,6 +118,16 @@ def interval_total():
         - name: method
           in: query
           enum: [sum, avg, count, max, min]
+
+        - name: order
+          in: query
+          default: ascending
+          enum: [descending, ascending]
+
+        - name: order-by
+          in: query
+          enum: [lengthMinutes, interval, idleMinutes]
+
     """
 
     headers = {"Access-Control-Allow-Origin": "*"}
@@ -114,6 +135,15 @@ def interval_total():
     method = request.args.get("method") or "sum"
     if method not in ["sum", "avg", "count", "max", "min"]:
         return {"error": "Invalid method", "result": {}}, 400, headers
+
+    order = request.args.get("order") or "ascending"
+    if order not in ["ascending", "descending"]:
+        return {"error": "Invalid order", "result": {}}, 400, headers
+    order = "ASC" if order == "ascending" else "DESC"
+
+    orderBy = request.args.get("order-by") or "interval"
+    if orderBy not in ["lengthMinutes", "interval", "idleMinutes"]:
+        return {"error": "Invalid orderBy", "result": {}}, 400, headers
 
     validIntervals = {
         "minute": "%M",
@@ -147,10 +177,12 @@ def interval_total():
         CAST({agg}(idleMS) as REAL) / 1000 / 60 as idleMinutes
         FROM activity_data
         GROUP BY STRFTIME('{interval}', startMS / 1000, 'unixepoch', 'localtime')
-        ORDER BY interval
+        ORDER BY {orderBy} {order}
         """.format(
             agg=method,
-            interval=interval
+            interval=interval,
+            order=order,
+            orderBy=orderBy
         )
     )
 
