@@ -1,55 +1,139 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="dashboard-container">
-	<div class="card chart-line">
-		<div class="title">Card Title here</div>
-		<div id="chart"></div>
+<div class="top-hours">
+	<h3>Your most productive hours</h3>
+	<ol id="hourlist">
+	</ol>
+	<ol id="timelist">
+	</ol>
+
+</div>
+
+<div class="calendar">
+	<h3>Productivity Calendar</h3>	
+	<div class="calendar-chart">
+		<div id="cal-heatmap"></div>
 	</div>
-	<div class="card">
-		<div id="">lsakjfdljafd</div>
-	</div>
+</div>
+<script>
 
-	<div class="card">
-		<div id="">lsakjfdljafd</div>
-	</div>
-	<div class="card chart-line">
-		<div id="">lsakjfdljafd</div>
-	</div>
-	<div class="card">
-		<div id="">lsakjfdljafd</div>
-	</div>
-	<div class="card">
-		<div id="">lsakjfdljafd</div>
-	</div>
-	<div class="card">
-		<div id="">lsakjfdljafd</div>
-	</div>
+function calendarhHeatmap() {
 
+	const cal = new CalHeatmap();
+	fetch('http://localhost:9000/api/activities/interval/all?interval=day-year')
+	.then(res => res.json())
+	.then(res => {
+		const data = []
+		const year = (new Date()).getFullYear()
+		const leap = ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)
+		const days = leap ? 366 : 365
 
-
-
-
-<div>
-
-<script type="module">
-import { reactive, html } from 'https://esm.sh/@arrow-js/core';
-
-let options = {
-  chart: {
-    type: 'line'
-  },
-  series: [{
-    name: 'sales',
-    data: [30,40,35,50,49,60,70,91,125]
-  }],
-  xaxis: {
-    categories: [1991,1992,1993,1994,1995,1996,1997, 1998,1999]
-  }
+		for (let k=0; k < res.result.interval.length; k++) {
+			const interval = res.result.interval[k]
+			const d = {
+				'date': (new Date((new Date(year, 0)).setDate(Number(interval)))).toJSON().substring(0,10),
+				'value': res.result.lengthMinutes[k]
+			}
+			data.push(d)
+		}
+		const a = Math.max.apply(null, res.result.lengthMinutes)
+		console.log([a/6/2, a/6, a/6*2, a/6*3, a/6*4, a/6*5, a])
+	
+		cal.paint({
+		    date: {
+			start: new Date(year, 1)
+		    },
+		    domain: {
+			type: 'month',
+			label: {
+			    text: 'MMM',
+			    textAlign: 'start',
+			    position: 'top'
+			},
+			gutter: 3
+		    },
+		    subDomain: {
+			type: 'ghDay',
+			height: 17,
+			width: 17,
+			radius: 3,
+			gutter: 1,
+		    },
+		    scale: {
+		      color: {
+			type: 'threshold',
+			range: ['#202022', '#1C3738', '#14432a', '#166b34', '#37a446', '#4dd05a', '#79d11d'],
+			domain: [.001, a/6/2, a/6, a/6*2, a/6*3, a/6*4, a/6*5, a],
+		      },
+		    },
+		    range: 12,
+		    data: {
+			source: data,
+			x: 'date',
+			y: 'value',
+			defaultValue: 0
+		    },
+		    theme: 'light',
+		},
+		  [
+		    [
+		      Tooltip,
+		      {
+			text: function (date, value, dayjsDate) {
+			  return (
+			    (value ? Math.floor(value) : '0') +
+			    ' Minutes on ' +
+			    dayjsDate.format('dddd, MMMM D, YYYY')
+			  );
+			},
+		      },
+		    ],
+		    [
+		      CalendarLabel,
+		      {
+			width: 30,
+			textAlign: 'start',
+			text: () => dayjs.weekdaysShort().map((d, i) => d),
+			padding: [25, 0, 0, 0],
+		      },
+		    ],
+		  ]
+		);
+	})
 }
 
-let chart = new ApexCharts(document.querySelector("#chart"), options);
+function mostProductiveHours() {
+	fetch('http://localhost:9000/api/activities/interval/all?interval=hour&order-by=lengthMinutes&order=descending')
+	.then(res => res.json())
+	.then(res => {
+		let hours = document.getElementById('hourlist')
+		let times = document.getElementById('timelist')
+		for (let i = 0; i < 5; i++) {
+			let entry = document.createElement('li')
+			const a = Number(res.result.interval[i])
+			let hour = a > 11 ? `${`${a == 12 ? 12 : a-12}`}pm` : `${`${a == 0 ? 12 : a}`}am`
 
-chart.render();
-console.log(reactive);
+			entry.appendChild(document.createTextNode(hour))
+			hours.appendChild(entry)                              	
+
+			let time = res.result.lengthMinutes[i]
+			hour = Math.floor(time / 60)
+			let minute = Math.floor(time % 60);  
+			let second = Math.floor((time%60) % 1 * 60)
+			hour = hour > 0 ? `${hour}h ` : ''
+			minute = minute > 0 ? `${minute}m ` : ''
+			second = second > 0 ? `${second}s ` : ''
+			time = `${hour}${minute}${second}`
+
+			entry = document.createElement('li')
+			entry.appendChild(document.createTextNode(time))
+			times.appendChild(entry)                              	
+		}
+	})
+}
+
+mostProductiveHours()
+calendarhHeatmap()
 </script>
+
 {% endblock content %}
