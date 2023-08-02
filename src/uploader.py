@@ -7,6 +7,12 @@ logger = logging.getLogger()
 
 
 class Uploader:
+    """Upload items to the sqlitedb
+    ARGS: Python Dictionary with keys: "procesName", "windowName",
+        "startMS", "endMS", "idleMS", lengthMS. All values must be a string.
+    RETURN: None
+    """
+
     # Min amount of items to upload. If this number hasn't
     # been reached, upload() saves the item into a list
     # (to be implemented).

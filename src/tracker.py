@@ -9,7 +9,12 @@ logger = logging.getLogger()
 
 
 class Tracker:
-    # Get foreground window, track inactivity. Return when window changes
+    """Get foreground window, track inactivity. Return when window changes
+    ARGS: None
+    RETURN: Dictionary with String values, and keys:
+        {"processName": , "windowName": "startMS": , "endMS": , "idleMS": ,
+        "lengthMS": }
+    """
 
     # Activity will not be considered unless the user
     # spent time greater than this value.

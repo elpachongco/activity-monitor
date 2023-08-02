@@ -27,18 +27,8 @@ def main():
     tracker = Tracker()
     logger.info("Activity Database at %s", DB_PATH)
     while True:
-        # call method: tracker.track()
-        # ARGS:
-        # RETURN: Py Dictionary with String values, and keys:
-        # 	{"processName": , "windowName": "actStart": ,
-        # 	"actEnd": , "inactDuration":}
         activity = tracker.track()
 
-        # Call method: None uploader.upload()
-        # ARGS: Python Dictionary returned by tracker.track(). Must have keys:
-        # 		"procesName", "windowName", "actStart", "actEnd", "inactDuration".
-        # 		All values must be a string.
-        # RETURN: None
         with Uploader(DB_PATH, TABLE_NAME) as uploader:
             uploader.upload(activity)
 
