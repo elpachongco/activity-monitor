@@ -111,6 +111,19 @@ class Tracker:
 
                 activity["endMS"] = time.time()
 
+                """
+                Handle long hours of inactivity. For example, if a user starts
+                activity @ 2pm, startMS is 2pm. If PC sleeps after 5 minutes, then the
+                maximum idleMS is 5mins. If user returns at 6pm, endMS is 6pm.
+                Length will be 4hours - 5mins. This is incorrect. Length should be
+                startMS + idleMS - startMS. endMS should be startMS + idleMS.
+                """
+                if activity["endMS"] - activity["startMS"] > 3600.0:
+                    activity["endMS"] = activity["startMS"] + (
+                        idleEndSeconds - idleStartSeconds
+                    )
+                    continue
+
                 activity["lengthMS"] = int(
                     (activity["endMS"] - activity["startMS"]) * 1000
                 )
@@ -119,7 +132,6 @@ class Tracker:
                     continue
 
                 activity["idleMS"] = int((idleEndSeconds - idleStartSeconds) * 1000)
-
                 activity["startMS"] = int(activity["startMS"] * 1000)
                 activity["endMS"] = int(activity["endMS"] * 1000)
                 activity = dictValToStr(activity)
