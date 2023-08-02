@@ -65,11 +65,14 @@ class Tracker:
             # Detects user Inactivity
             userIsActive = isUserActive(self.os)
             currentWindow, currentPid = getForegroundWindow(self.os)
-            if currentPid == "":  # This means there is no window selected i.e. on reboot
+            if (
+                currentPid == ""
+            ):  # This means there is no window selected i.e. on reboot
                 currentWindow = ""
                 activity["windowName"] = ""
-                activity["startMS"] = 0
+                activity["startMS"] = time.time()
                 continue
+
             currentProcess = psutil.Process(currentPid).name()
 
             # When track() is ran for the first time, windowName, procesName is ""
@@ -92,10 +95,12 @@ class Tracker:
 
             if currentWindow != activity["windowName"]:
                 if idle:
-                    # Handles the missing end time when the user is inactive
-                    # and a change of window occurs (e.g. when waiting for a
-                    # webpage to load, the windowName is "New Tab", which
-                    # changes when the page loads, "new tab" -> "youtube.com")
+                    """
+                    Handles the missing end time when the user is inactive
+                    and a change of window occurs (e.g. when waiting for a
+                    webpage to load, the windowName is "New Tab", which
+                    changes when the page loads, "new tab" -> "youtube.com")
+                    """
                     idleEndSeconds += time.time()
                     idle = False
 

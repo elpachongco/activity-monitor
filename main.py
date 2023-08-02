@@ -54,14 +54,13 @@ def setupLogger():
     logger = logging.getLogger()
 
     logger.setLevel(level)
-    handler = TimedRotatingFileHandler(filename="logs/tracker.log",
-                                       when="H",
-                                       interval=48,
-                                       backupCount=3)
+    handler = TimedRotatingFileHandler(
+        filename="logs/tracker.log", when="H", interval=48, backupCount=3
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
