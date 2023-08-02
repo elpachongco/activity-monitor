@@ -32,7 +32,7 @@ function calendarhHeatmap() {
 			const interval = res.result.interval[k]
 			const d = {
 				'date': (new Date((new Date(year, 0)).setDate(Number(interval)))).toJSON().substring(0,10),
-				'value': res.result.lengthMinutes[k]
+				'value': Number(res.result.lengthMinutes[k]) - Number(res.result.idleMinutes[k])
 			}
 			data.push(d)
 		}
@@ -116,7 +116,7 @@ function mostProductiveHours() {
 			entry.appendChild(document.createTextNode(hour))
 			hours.appendChild(entry)                              	
 
-			let time = res.result.lengthMinutes[i]
+			let time = Number(res.result.lengthMinutes[i]) - Number(res.result.idleMinutes[i])
 			hour = Math.floor(time / 60)
 			let minute = Math.floor(time % 60);  
 			let second = Math.floor((time%60) % 1 * 60)
