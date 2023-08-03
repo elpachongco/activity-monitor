@@ -52,9 +52,20 @@ DB_TABLE_COLUMNS = [
 def activities():
     """Get the latest activity from database.
     ---
+    parameters:
+        - name: limit
+          description: limit number of results
+          in: query
+          type: integer
+          default:
+                1
+          example:
+                limit=1
+
     responses:
         200:
-            description: Successful request. Error property will contain a blank string `\"\"`.
+            description: Successful request. Error property will contain a
+                blank string `\"\"`.
             schema:
                 $ref: '#/definitions/SuccessfulResponse'
 
@@ -63,26 +74,25 @@ def activities():
             schema:
                 $ref: '#/definitions/ErrorResponse'
     """
+    headers = {"Access-Control-Allow-Origin": "*"}
+
+    limit = request.args.get("limit") or "1"
+    if not limit.isdigit():
+        return {"error": "Limit should be a digit.", "result": {}}, 400
 
     activityData = db.execute(
         """
-        SELECT * FROM activity_data ORDER BY startMS DESC LIMIT 1;
-        """
+        SELECT * FROM activity_data ORDER BY startMS DESC LIMIT {limit};
+        """.format(
+            limit=limit
+            )
     )
 
-    queryData = {}
-    for key in DB_TABLE_COLUMNS:
-        queryData[key] = []
-        # queryData[key] = [dict(row)[key] for row in activityData.fetchall()]
+    a = defaultdict(list)
+    for row in activityData:
+        [a[key].append(row[key]) for key in row.keys()]
 
-    for row in activityData.fetchall():
-        for key in DB_TABLE_COLUMNS:
-            queryData[key].append(dict(row)[key])
-
-    headers = {"Access-Control-Allow-Origin": "*"}
-    statusCode = 200
-
-    return {"error": "", "result": queryData}, statusCode, headers
+    return {"error": "", "result": a}, 200, headers
 
 
 @app.route("/api/activities/interval/all", methods=["GET"])
