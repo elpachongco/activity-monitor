@@ -61,6 +61,7 @@ class Tracker:
         # if inactivity ends, add current time to end.
         idleStartSeconds = 0.0
         idleEndSeconds = 0.0
+        lastIdleRecord = 0.0
 
         activity["startMS"] = time.time()
 
@@ -90,11 +91,13 @@ class Tracker:
             if not userIsActive:
                 if not idle:
                     idleStartSeconds += time.time()
+                    lastIdleRecord = time.time()
                     idle = True
             else:
                 # If user is active and idle == True, user came back from inactivity
                 if idle:
                     idleEndSeconds += time.time()
+                    lastIdleRecord = time.time()
                     # User is no longer idle. Set idle = False for the next inactivity.
                     idle = False
 
@@ -107,22 +110,27 @@ class Tracker:
                     changes when the page loads, "new tab" -> "youtube.com")
                     """
                     idleEndSeconds += time.time()
+                    lastIdleRecord = time.time()
                     idle = False
 
                 activity["endMS"] = time.time()
 
                 """
-                Handle long hours of inactivity. For example, if a user starts
-                activity @ 2pm, startMS is 2pm. If PC sleeps after 5 minutes, then the
-                maximum idleMS is 5mins. If user returns at 6pm, endMS is 6pm.
-                Length will be 4hours - 5mins. This is incorrect. Length should be
-                startMS + idleMS - startMS. endMS should be startMS + idleMS.
+                Handle long hours of inactivity. E.g. if a user starts activity @ 2pm,
+                startMS is 2pm. If PC sleeps after 5 minutes, then the maximum idleMS is
+                5mins. If user returns at 6pm, endMS is 6pm. Length will
+                be 4hours - 5mins. This is incorrect;  idle time was not recorded.
+                Length should be startMS + idleMS - startMS. endMS should be
+                startMS + idleMS.
+
+                This should also consider scenario where there is a long idle time but
+                the computer doesn't sleep and the windowName is not changed.
                 """
                 if activity["endMS"] - activity["startMS"] > 3600.0:
-                    activity["endMS"] = activity["startMS"] + (
-                        idleEndSeconds - idleStartSeconds
-                    )
-                    continue
+                    if activity["endMS"] - lastIdleRecord < 3600.0:
+                        activity["endMS"] = activity["startMS"] + (
+                            (idleEndSeconds - idleStartSeconds)
+                        )
 
                 activity["lengthMS"] = int(
                     (activity["endMS"] - activity["startMS"]) * 1000
