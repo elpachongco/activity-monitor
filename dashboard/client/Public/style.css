@@ -8,11 +8,24 @@
   src: url("/RobotoCondensed-Regular.ttf");
 }
 
+:root{
+  --color-codgray-black: #151515;
+  --color-white: #ffffff;
+  --color-manatee-gray: #949495;
+  --color-mineshaft-black: #292929;
+
+  --ui-bg-color: var(--color-codgray-black);
+  --ui-fg-color: var(--color-white);
+  --ui-fg2-color: var(--color-manatee-gray);
+  --ui-fg3-color: var(--color-mineshaft-black);
+
+}
+
 body {
   margin: 0px;
   padding: 0px;
-  background-color: #151515;
-  color: #ffffff;
+  background-color: var(--ui-bg-color);
+  color: var(--ui-fg-color);
   font-family: "Barlow";
 }
 
@@ -21,15 +34,14 @@ body {
   display: flex;
   align-items: center;
   gap: 3rem;
-  border-bottom: 1px solid #292929;
+  border-bottom: 1px solid var(--ui-fg3-color);
   text-decoration: none;
 }
 .header p {
-  color: #949495;
+  color: var(--ui-fg2-color);
   text-align: left;
 }
 .header h1 {
-  color: #ffffff;
   font-size: 40px;
   font-weight: normal;
 }
