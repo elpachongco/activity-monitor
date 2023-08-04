@@ -1,5 +1,19 @@
 # Changelog
 
+## 2023-08-04
+
+- Bug fixes
+    - ccdda8509cbf284e5fdaf1a121321a64904fe102 fixes a bug about long hours of inactivity. See the commit for more information.
+    - ca4eaa001af6e5c7b7385769cce873f4757dd8d3 fixes a bug about startMS at startup.
+
+- New API endpoint: `/api/activities/interval/all`
+    - Very useful for aggregation. See `localhost:9000/apidocs`.
+
+- Dashboard new look 
+    - Now uses d3, and cal-heatmap.js
+    - Removed apexcharts
+    ![CHANGELOG-dashboard-new-look](img/CHANGELOG-dashboard-new-look.png) 
+
 ## 2023-07-30
 
 - New DB structure
@@ -22,7 +36,7 @@
 ## 2023-07-24
 
 - REST API is here 
-    - SWAGGER api documentation at /apidoc
+    - SWAGGER api documentation at /apidocs
     - More endpoints soon
 - Logging setup
     - Rotating logs for main.py and flask server
