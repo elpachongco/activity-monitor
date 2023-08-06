@@ -25,19 +25,16 @@ function calendarhHeatmap() {
 	.then(res => {
 		const data = []
 		const year = (new Date()).getFullYear()
-		const leap = ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)
-		const days = leap ? 366 : 365
 
 		for (let k=0; k < res.result.interval.length; k++) {
 			const interval = res.result.interval[k]
 			const d = {
-				'date': (new Date((new Date(year, 0)).setDate(Number(interval)))).toJSON().substring(0,10),
+				'date': (new Date((new Date(year, 0)).setDate(Number(interval)+1))).toJSON().substring(0,10),
 				'value': Number(res.result.lengthMinutes[k]) - Number(res.result.idleMinutes[k])
 			}
 			data.push(d)
 		}
 		const a = Math.max.apply(null, res.result.lengthMinutes)
-		console.log([a/6/2, a/6, a/6*2, a/6*3, a/6*4, a/6*5, a])
 	
 		cal.paint({
 		    date: {
